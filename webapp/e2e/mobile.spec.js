@@ -17,10 +17,10 @@ test.describe('Mobile responsive layout', () => {
       // Create one jump to verify the card layout
       await page.click('[data-testid="new-jump-btn"]')
       await page.waitForSelector('[data-testid="jump-modal"]')
-      await page.fill('#jump-date', '2025-06-01')
-      await page.selectOption('#jump-type', 'FF')
-      await page.fill('#jump-dropzone', 'Mobile DZ')
-      await page.fill('#jump-aircraft', 'Caravan')
+      await page.fill('#f-date', '2025-06-01T10:00')
+      await page.selectOption('#f-jump-type', 'FF')
+      await page.fill('#f-dropzone input', 'Mobile DZ')
+      await page.fill('#f-aircraft input', 'Caravan')
       await page.click('[data-testid="jump-form-submit"]')
       await expect(page.locator('[data-testid="jump-modal"]')).not.toBeVisible()
 
@@ -60,7 +60,7 @@ test.describe('Mobile responsive layout', () => {
     await expect(modal).toBeVisible()
 
     // Form fields should be usable (44px min touch targets)
-    const dateInput = page.locator('#jump-date')
+    const dateInput = page.locator('#f-date')
     await expect(dateInput).toBeVisible()
     const box = await dateInput.boundingBox()
     expect(box?.height).toBeGreaterThanOrEqual(44)

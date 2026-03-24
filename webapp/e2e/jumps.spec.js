@@ -31,6 +31,8 @@ test.describe('Jump CRUD flows', () => {
     })
 
     await expect(page.locator('text=Skydive Empuriabrava').first()).toBeVisible()
+    // Toast should appear confirming creation
+    await expect(page.locator('.toast--success')).toContainText('Jump created')
   })
 
   test('edit a jump and verify changes persist', async ({ page }) => {
@@ -54,6 +56,8 @@ test.describe('Jump CRUD flows', () => {
 
     await expect(page.locator('text=Skydive Perris').first()).toBeVisible()
     await expect(page.locator('text=Skydive Elsinore')).not.toBeVisible()
+    // Toast should appear confirming edit
+    await expect(page.locator('.toast--success')).toContainText('Jump updated')
   })
 
   test('delete a jump and verify it is removed', async ({ page }) => {
@@ -74,6 +78,8 @@ test.describe('Jump CRUD flows', () => {
     await page.click('[data-testid="confirm-delete-btn"]')
 
     await expect(page.locator('text=Skydive Chicago')).not.toBeVisible()
+    // Toast should appear confirming deletion
+    await expect(page.locator('.toast--success')).toContainText('Jump deleted')
   })
 
   test('insert at position and verify row count', async ({ page }) => {

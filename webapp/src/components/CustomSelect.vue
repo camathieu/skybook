@@ -61,6 +61,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleOutsideCli
       type="button"
       :aria-label="ariaLabel"
       aria-haspopup="listbox"
+      data-testid="custom-select-trigger"
       @click="open = !open"
     >
       <span class="cselect__label" :class="{ 'cselect__label--selected': modelValue }">
@@ -72,7 +73,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleOutsideCli
     </button>
 
     <Transition name="dropdown">
-      <div v-if="open" ref="menuRef" class="cselect__menu" role="listbox">
+      <div v-if="open" ref="menuRef" class="cselect__menu" role="listbox" data-testid="custom-select-menu">
         <!-- Clear / All option -->
         <button
           class="cselect__option"
@@ -80,6 +81,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleOutsideCli
           type="button"
           role="option"
           :aria-selected="!modelValue"
+          data-testid="custom-select-clear"
           @click="clear"
         >
           <span class="cselect__option-label">{{ placeholder }}</span>
@@ -99,6 +101,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleOutsideCli
             type="button"
             role="option"
             :aria-selected="modelValue === opt"
+            :data-testid="`custom-select-option-${opt}`"
             @click="select(opt)"
           >
             <span class="cselect__option-label">{{ opt }}</span>
