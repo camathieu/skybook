@@ -83,6 +83,7 @@ The core entity. All jumps **must** remain ordered by `Number` at all times.
 | `NightJump` | `bool` | – | Night jump flag |
 | `OxygenJump` | `bool` | – | High-altitude O₂ jump |
 | `CutAway` | `bool` | – | Cutaway / malfunction flag |
+| `Packjob` | `bool` | – | Was this jump packed by a packer? (To track packer fees) |
 | `Wingsuit` | `bool` | – | Was a wingsuit flown? (Equipment system deferred to v11) |
 | `Buddies` | `[]JumpBuddy` | – | People on the jump — shared buddy pool (v4) |
 | `CreatedAt` | `datetime` | auto | |
@@ -269,6 +270,18 @@ A globally shared canonical directory of wind tunnels.
 - **Autocomplete**: Dropzone, Aircraft, Equipment, and LO fields use historical values for autocomplete
 - **Responsive**: Works on desktop and mobile
 - **Dark mode**: Default dark theme with sky/aviation aesthetic
+
+### v1.1 — Core UX Refinements
+
+> Refining v1.0 usability.
+
+- **Autocomplete Sorting**: Sort recently used values higher when autocompleting fields in the jump form
+- **Filter Dropdown Sorting**: Sort dropdown options in the filter bar by frequency of use
+- **Pagination Fix**: Resolve the bug where the "per page" setting does not work
+- **Global Toast Notifications**: Unified snackbar system for success/error handling
+- **Modal Autofocus**: Automatically focus the first active field (Dropzone/Date) on modal open
+- **Save & Add Another**: Quickly log sequential jumps without closing the modal
+- **Packjob Boolean**: Track whether a jump was packed by a packer (to remind you to pay them)
 
 ### v2 — Basic Statistics
 
