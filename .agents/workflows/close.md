@@ -86,7 +86,7 @@ ls <epic-dir>/
 
 Check if the work changed anything that affects the foundational docs:
 
-- **`ARCHITECTURE.md`** — new packages, models, API endpoints, patterns?
+- **`ARCHITECTURE.md`** — update the relevant scoped file (root, server/, or webapp/) per `AGENTS.md` § "What is ARCHITECTURE.md?"
 - **`AGENTS.md`** — new build commands, key files, conventions?
 - **`PLANS.md`** — new roadmap conventions or lifecycle changes?
 - **`docs/`** — user-facing documentation for new features?

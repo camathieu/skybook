@@ -92,6 +92,9 @@ make docker                 # Build Docker image
 
 | File | Purpose |
 |------|---------|
+| `ARCHITECTURE.md` | System-wide architecture (data model, API, invariants) |
+| `server/ARCHITECTURE.md` | Server internals, SQLite gotchas, SPA embedding |
+| `webapp/ARCHITECTURE.md` | Vue SPA internals, component hierarchy, design system |
 | `server/skybook.cfg` | Server configuration (TOML) — all options with comments |
 | `server/common/config.go` | Config struct + parsing + env var override logic |
 | `server/common/jump.go` | Jump model + type enums |
@@ -115,12 +118,35 @@ make docker                 # Build Docker image
 ## Best Practices
 
 - **No backward compatibility (Pre-V1)**: Until the first official release, there is zero need to maintain backward compatibility for database migrations, configuration, or APIs. Break things if it improves the architecture.
-- **Always update docs**: When changing code, update `ARCHITECTURE.md`, `AGENTS.md`, and VitePress docs
+- **Always update docs**: When changing code, update the relevant `ARCHITECTURE.md` (root, server, or webapp — see § What is ARCHITECTURE.md?), `AGENTS.md`, and VitePress docs
 - **Always update roadmaps**: When completing or starting work on a ticket/epic, update the `status` field in the corresponding roadmap files (see [PLANS.md](PLANS.md))
 - **Run tests before committing**: `make lint && make test`
 - **Follow the layering**: `common → metadata → middleware → handlers → cmd → server` — never import in the reverse direction
-- **Dark-first UI**: The webapp uses a dark theme by default with aviation-inspired aesthetics (see ARCHITECTURE.md §Webapp)
+- **Dark-first UI**: The webapp uses a dark theme by default with aviation-inspired aesthetics (see `webapp/ARCHITECTURE.md` § Design System)
 - **Mobile-ready UI**: The mobile experience must be at least as good as desktop. Every UI component must work on a 375px screen (iPhone SE). Touch targets ≥ 44px, no hover-only interactions, tables→cards on small screens. Always verify responsiveness when implementing or reviewing UI changes.
+
+## What is ARCHITECTURE.md?
+
+ARCHITECTURE.md is the **understanding layer** — knowledge that exists in senior engineers' heads but not in the code. It has two jobs:
+
+**Job 1 — Mental model**: Help someone who's never seen this code form a correct mental model in minutes.
+- Domain concepts and their relationships
+- State machines for lifecycle entities
+- Data flow through the system (happy path, end-to-end)
+- Configuration semantics — what values *mean* (e.g., `0` = use default, `-1` = unlimited)
+- Resolution/precedence order when multiple configs apply
+
+**Job 2 — Traps & guardrails**: Prevent changes that look correct but break things.
+- Gotchas — things that look wrong but are intentional
+- Invariants — rules that must never be violated
+- Security constraints, at the point they matter
+- Coupling warnings — changes with non-obvious blast radius
+
+**Acid test**: *"Could an agent get this from the code or `AGENTS.md`?"* → if yes, don't put it in ARCHITECTURE.md.
+
+**NOT in ARCHITECTURE.md**: file/class listings (read the tree), build/test commands (`AGENTS.md`), version numbers (goes stale), code restatements (read the file), exhaustive API endpoint lists (root ARCHITECTURE.md has the contract, not implementation detail).
+
+**Scoping**: Root `ARCHITECTURE.md` covers system-wide concerns (data model, API contract, cross-cutting invariants). `server/ARCHITECTURE.md` covers Go backend internals. `webapp/ARCHITECTURE.md` covers Vue SPA internals.
 
 ## Workflows
 
@@ -143,7 +169,7 @@ This is how work gets done in this repo. All workflows are in `.agents/workflows
 
 ## Documentation
 
-1. **For agents**: `AGENTS.md` (this file) and `ARCHITECTURE.md`
+1. **For agents**: `AGENTS.md` (this file) + `ARCHITECTURE.md` (root, server, webapp)
 2. **For humans**: VitePress site in `docs/`
 
 ## Roadmap

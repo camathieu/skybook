@@ -104,7 +104,7 @@ For every modified file, evaluate against ALL of the following checklist:
 
 ### 3. Cross-check with project context
 
-- Read the relevant ARCHITECTURE.md file(s) for the changed packages
+- Read the relevant scoped `ARCHITECTURE.md` file(s) for the changed packages — see `AGENTS.md` § "What is ARCHITECTURE.md?" for what belongs there
 - Verify the change aligns with documented patterns
 - Check if AGENTS.md needs updating
 
