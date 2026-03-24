@@ -2,7 +2,7 @@
 epic: jump-data-model
 milestone: v1
 title: Jump Data Model
-status: planned
+status: done
 ---
 
 # Jump Data Model

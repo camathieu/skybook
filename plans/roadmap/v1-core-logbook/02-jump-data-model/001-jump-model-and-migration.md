@@ -3,7 +3,7 @@ ticket: "001"
 epic: jump-data-model
 milestone: v1
 title: Jump Model & Migration
-status: planned
+status: done
 priority: high
 estimate: M
 ---
@@ -14,8 +14,8 @@ Define the Jump GORM model with all v1 fields and create the initial migration.
 
 ## Acceptance Criteria
 
-- [ ] `server/common/jump.go` — Jump struct with all v1 fields, GORM tags, JSON serialization
-- [ ] All fields from PRD §3.1:
+- [x] `server/common/jump.go` — Jump struct with all v1 fields, GORM tags, JSON serialization
+- [x] All fields from PRD §3.1:
 
 | Field | Go Type | GORM / Notes |
 |-------|---------|-------------|
@@ -40,12 +40,12 @@ Define the Jump GORM model with all v1 fields and create the initial migration.
 | `CreatedAt` | `time.Time` | auto |
 | `UpdatedAt` | `time.Time` | auto |
 
-- [ ] `JumpType` enum constants defined in `jump.go`
-- [ ] `UserID` foreign key (multi-tenant readiness)
-- [ ] `Links` stored as JSON text, serialized/deserialized as `[]string`
-- [ ] Migration via gormigrate creates `jumps` table
-- [ ] Indexes: `(user_id, number)` unique, `date`, `dropzone`, `jump_type`
-- [ ] Unit tests for JSON serialization of `Links`
+- [x] `JumpType` enum constants defined in `jump.go`
+- [x] `UserID` foreign key (multi-tenant readiness)
+- [x] `Links` stored as JSON text, serialized/deserialized as `[]string`
+- [x] Migration via gormigrate creates `jumps` table
+- [x] Indexes: `(user_id, number)` unique, `date`, `dropzone`, `jump_type`
+- [x] Unit tests for JSON serialization of `Links`
 
 ## Technical Notes
 
@@ -53,4 +53,10 @@ Define the Jump GORM model with all v1 fields and create the initial migration.
 - Nullable numeric fields use pointer types (`*uint`) so zero ≠ "not set"
 - `Equipment`/Gear tracking deferred to v11 — full `Gear` table + `Kit` grouping system
 - `Buddies` (many-to-many join table) deferred to v4; field omitted from this migration
+
+## Done
+- Created `server/common/jump.go` with strongly-typed `JumpType` (`type JumpType string`).
+- Switch-based validation in `.IsValid()` and `AllJumpTypes()` helper.
+- Added `202603241301_create_jumps` migration in `server/metadata/migrations.go`.
+- Unit tests for Links JSON serialization, nullable pointer JSON omission, and `JumpType` validation.
 

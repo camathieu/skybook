@@ -75,7 +75,7 @@ The core entity. All jumps **must** remain ordered by `Number` at all times.
 | `DeployAltitude` | `uint` | – | Deployment altitude in feet |
 | `FreefallTime` | `uint` | – | Freefall time in seconds |
 | `CanopySize` | `uint` | – | Canopy size in sq ft |
-| `Coach` | `string` | – | Coach or instructor name (autocomplete) |
+| `LO` | `string` | – | Load Organizer or coach name (autocomplete) |
 | `Event` | `string` | – | Event name — boogie, competition, course (autocomplete) |
 | `Description` | `text` | – | Freeform notes / debrief |
 | `Links` | `text (JSON)` | – | Array of URLs (video links, photos, etc.) |
@@ -184,7 +184,7 @@ Separate table and webapp tab. Numbered sequentially.
 - **Auto-numbering**: Jump numbers are always sequential. Inserting a jump between #50 and #51 renumbers all subsequent jumps. Deleting a jump renumbers downward
 - **Jump list view**: Sortable, paginated table
 - **Search & filters**: Filter by date range, dropzone, jump type, altitude range, keywords, and boolean flags (cutaway, night, etc.)
-- **Autocomplete**: Dropzone, Aircraft, Equipment, and Coach fields use historical values for autocomplete
+- **Autocomplete**: Dropzone, Aircraft, Equipment, and LO fields use historical values for autocomplete
 - **Responsive**: Works on desktop and mobile
 - **Dark mode**: Default dark theme with sky/aviation aesthetic
 
@@ -341,7 +341,7 @@ All endpoints prefixed with `/api/v1`.
 | `altitude_max` | int | Maximum altitude |
 | `cutaway` | bool | Filter cutaway jumps |
 | `night` | bool | Filter night jumps |
-| `coach` | string | Filter by coach |
+| `lo` | string | Filter by Load Organizer / Coach |
 
 ### 5.4 Webapp Embedding
 
