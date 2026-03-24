@@ -106,3 +106,4 @@ Do NOT write any implementation code until the user approves the plan.
 - **Check dependencies**: If the ticket depends on another ticket that isn't done, flag it immediately
 - **One ticket at a time**: Don't combine multiple tickets into one implementation plan unless the user explicitly asks
 - **PRD is the source of truth**: Cross-check acceptance criteria against the PRD for completeness
+- **Do NOT auto-commit after implementation**: Once the code is written and verified (build + tests pass), ask the user to run `/review-changes` before committing. Never run `/commit` or `/close` automatically at the end of a `/start`.
