@@ -113,6 +113,7 @@ make docker                 # Build Docker image
 
 ## Best Practices
 
+- **No backward compatibility (Pre-V1)**: Until the first official release, there is zero need to maintain backward compatibility for database migrations, configuration, or APIs. Break things if it improves the architecture.
 - **Always update docs**: When changing code, update `ARCHITECTURE.md`, `AGENTS.md`, and VitePress docs
 - **Always update roadmaps**: When completing or starting work on a ticket/epic, update the `status` field in the corresponding roadmap files (see [PLANS.md](PLANS.md))
 - **Run tests before committing**: `make lint && make test`
