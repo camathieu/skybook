@@ -1,0 +1,37 @@
+# SkyBook
+
+# Go
+server/skybook
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test
+*.test
+*.out
+*.prof
+
+# SQLite
+*.db
+*.db-wal
+*.db-shm
+
+# Node / Webapp
+webapp/node_modules/
+webapp/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+/tmp/

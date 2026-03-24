@@ -15,7 +15,7 @@ Define the Jump GORM model with all v1 fields and create the initial migration.
 ## Acceptance Criteria
 
 - [ ] `server/common/jump.go` — Jump struct with GORM tags and JSON serialization
-- [ ] All fields from PRD §3.1: Number, Date, Dropzone, Aircraft, Equipment, JumpType, Altitude, DeployAltitude, FreefallTime, CanopySize, Coach, Event, Description, Links, Landing, NightJump, OxygenJump, CutAway
+- [ ] All fields from PRD §3.1: Number, Date, Dropzone, Aircraft, JumpType, Altitude, DeployAltitude, FreefallTime, CanopySize, Coach, Event, Description, Links, Landing, NightJump, OxygenJump, CutAway
 - [ ] `UserID` foreign key (for multi-tenant readiness)
 - [ ] `Links` stored as JSON text, serialized/deserialized as `[]string`
 - [ ] Migration via gormigrate creates `jumps` table

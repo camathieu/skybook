@@ -65,12 +65,12 @@ common → metadata → middleware → handlers → cmd → server
 
 | Package | Location | Purpose |
 |---------|----------|---------|
-| `common` | `server/common/` | Shared types (Jump, User, Document), config struct, validation, enums |
-| `metadata` | `server/metadata/` | GORM backend setup, migrations (gormigrate), queries, numbering invariant |
-| `middleware` | `server/middleware/` | HTTP middleware: recovery, logging, request ID, auth (v6), pagination |
-| `handlers` | `server/handlers/` | HTTP handler functions — jump CRUD, documents, stats, import/export |
-| `cmd` | `server/cmd/` | Cobra CLI commands: `serve`, `migrate`, `import`, `export` |
-| `server` | `server/server/` | HTTP server setup, router configuration, SPA serving, backend initialization |
+| `common` | `server/common/` | Shared types (Jump, User, Document), config struct, validation, `WriteJSON`/`WriteError` helpers |
+| `metadata` | `server/metadata/` | GORM/SQLite backend, gormigrate migrations, queries, numbering invariant |
+| `middleware` | `server/middleware/` | `Recovery`, `Logging`, `RequestID`; auth (v6), pagination |
+| `handlers` | `server/handlers/` | HTTP handlers — health, config, jump CRUD, documents, stats |
+| `cmd` | `server/cmd/` | Cobra CLI: `root.go` (`--config` flag, default serve), `serve.go` |
+| `server` | `server/server/` | `SkyBookServer`: router, middleware chain, graceful shutdown, SPA serving |
 
 > [!IMPORTANT]
 > Never import in the reverse direction. If `handlers` needs a type, it must be defined in `common`.
