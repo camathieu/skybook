@@ -1,5 +1,5 @@
 <script setup>
-import { watch, onMounted, computed, ref, nextTick } from 'vue'
+import { watch, onMounted, onUnmounted, computed, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useJumpStore } from '../stores/jumps.js'
 import SearchBar from '../components/SearchBar.vue'
@@ -8,6 +8,7 @@ import JumpTable from '../components/JumpTable.vue'
 import JumpCard from '../components/JumpCard.vue'
 import JumpSkeleton from '../components/JumpSkeleton.vue'
 import Pagination from '../components/Pagination.vue'
+import JumpModal from '../components/JumpModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +16,37 @@ const store = useJumpStore()
 
 const ready = ref(false)
 
+// --- Modal state ---
+const showModal = ref(false)
+const editingJump = ref(null) // null = create, object = edit
+
+function openCreate() {
+  editingJump.value = null
+  showModal.value = true
+}
+
+function openEdit(jump) {
+  editingJump.value = jump
+  showModal.value = true
+}
+
+function onModalClose() {
+  showModal.value = false
+  editingJump.value = null
+}
+
+// --- Keyboard shortcut: N = new jump ---
+function onGlobalKey(e) {
+  // Ignore when typing in inputs/textareas
+  const tag = document.activeElement?.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+  if (e.key === 'n' || e.key === 'N') openCreate()
+}
+
+onMounted(() => window.addEventListener('keydown', onGlobalKey))
+onUnmounted(() => window.removeEventListener('keydown', onGlobalKey))
+
+// --- Data states ---
 const showEmpty = computed(() => !store.loading && !store.error && store.total === 0 && !store.hasActiveFilters())
 const showNoResults = computed(() => !store.loading && !store.error && store.total === 0 && store.hasActiveFilters())
 const showData = computed(() => !store.loading && !store.error && store.total > 0)
@@ -55,6 +87,17 @@ function retry() {
 
 <template>
   <div class="jump-list">
+    <!-- Page header with New Jump button -->
+    <div class="page-header">
+      <h1 class="page-title">Jumps</h1>
+      <button class="btn-new-jump" @click="openCreate" title="New Jump (N)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/>
+        </svg>
+        New Jump
+      </button>
+    </div>
+
     <!-- Toolbar: search + filters -->
     <div class="toolbar">
       <SearchBar />
@@ -77,7 +120,7 @@ function retry() {
       <div class="state-icon pulse">✦</div>
       <h1 class="state-title">Your logbook is empty</h1>
       <p class="state-subtitle">Log your first jump to get started</p>
-      <button class="btn-primary state-cta">
+      <button class="btn-primary state-cta" @click="openCreate">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/>
         </svg>
@@ -97,19 +140,22 @@ function retry() {
     <template v-else-if="showData">
       <!-- Desktop table -->
       <div class="desktop-only">
-        <JumpTable />
+        <JumpTable @edit="openEdit" />
       </div>
 
       <!-- Mobile cards -->
       <div class="mobile-only">
         <div class="card-list">
-          <JumpCard v-for="jump in store.items" :key="jump.id" :jump="jump" />
+          <JumpCard v-for="jump in store.items" :key="jump.id" :jump="jump" @edit="openEdit" />
         </div>
       </div>
 
       <Pagination />
     </template>
   </div>
+
+  <!-- Jump Modal (create / edit) -->
+  <JumpModal v-if="showModal" :jump="editingJump" @close="onModalClose" />
 </template>
 
 <style scoped>
@@ -117,6 +163,46 @@ function retry() {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+/* Page header */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.btn-new-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-teal));
+  color: #0f1923;
+  border: none;
+  border-radius: 8px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn-new-jump:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-new-jump:active {
+  transform: translateY(0);
 }
 
 /* Toolbar */
@@ -170,18 +256,16 @@ function retry() {
 }
 
 .state-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.75rem 2rem;
   font-size: 1rem;
 }
 
 /* Responsive toggle */
-.desktop-only {
-  display: block;
-}
-
-.mobile-only {
-  display: none;
-}
+.desktop-only { display: block; }
+.mobile-only  { display: none; }
 
 .card-list {
   display: flex;
@@ -194,13 +278,8 @@ function retry() {
     padding: 1rem;
   }
 
-  .desktop-only {
-    display: none;
-  }
-
-  .mobile-only {
-    display: block;
-  }
+  .desktop-only { display: none; }
+  .mobile-only  { display: block; }
 
   .state-card {
     padding: 3rem 1rem;

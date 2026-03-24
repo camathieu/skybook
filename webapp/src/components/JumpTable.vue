@@ -1,6 +1,7 @@
 <script setup>
 import { useJumpStore } from '../stores/jumps.js'
 
+const emit = defineEmits(['edit'])
 const store = useJumpStore()
 
 const columns = [
@@ -65,6 +66,10 @@ function sortIcon(col) {
           :key="jump.id"
           class="jump-row"
           :style="{ animationDelay: `${i * 30}ms` }"
+          style="cursor:pointer"
+          tabindex="0"
+          @click="emit('edit', jump)"
+          @keydown.enter="emit('edit', jump)"
         >
           <td class="col-number">
             <span class="jump-number">{{ jump.number }}</span>

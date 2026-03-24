@@ -264,14 +264,28 @@ The main logbook view follows a component hierarchy:
 | Component | File | Description |
 |-----------|------|-------------|
 | `JumpList.vue` | `views/` | Page-level view — URL sync, state management, layout switching |
-| `JumpTable.vue` | `components/` | Desktop table — sortable column headers, flag badges, row animations |
-| `JumpCard.vue` | `components/` | Mobile card — 2-column grid layout, touch-friendly, tap to expand |
+| `JumpTable.vue` | `components/` | Desktop table — sortable column headers, flag badges, row animations; emits `edit` on row click |
+| `JumpCard.vue` | `components/` | Mobile card — 2-column grid layout, touch-friendly; emits `edit` on card click |
 | `JumpSkeleton.vue` | `components/` | Loading shimmer — matches table dimensions |
 | `SearchBar.vue` | `components/` | Debounced search (300ms) with `/` keyboard shortcut |
 | `FilterBar.vue` | `components/` | Type, dropzone, date range, boolean toggles; collapses on mobile |
 | `Pagination.vue` | `components/` | Prev/Next, page indicator, per-page selector (25/50/100) |
 
-**State management**: `stores/jumps.js` (Pinia) manages items, pagination, sort, and filters. URL query params are synced bidirectionally — on mount, query → store; on change, store → URL via `router.replace`.
+**State management**: `stores/jumps.js` (Pinia) manages items, pagination, sort, and filters — plus `createJump`, `updateJump`, `deleteJump` mutation actions. URL query params are synced bidirectionally — on mount, query → store; on change, store → URL via `router.replace`.
+
+### Jump Form Components
+
+The jump create/edit workflow uses three new components:
+
+| Component | File | Description |
+|-----------|------|-------------|
+| `JumpModal.vue` | `components/` | Unified create/edit form — pass `jump` prop for edit mode, null for create. Full-screen sheet on mobile `<640px` |
+| `AutocompleteInput.vue` | `components/` | Debounced (200ms) autocomplete backed by `/api/v1/jumps/autocomplete/:field`; keyboard navigable dropdown |
+| `ConfirmModal.vue` | `components/` | Generic danger confirmation dialog with loading state; reusable for any destructive action |
+
+**Modal trigger flow**: `JumpList` maintains `showModal: ref(bool)` and `editingJump: ref(jump|null)`. Clicking `+ New Jump` (or pressing `N`) opens create mode. Clicking a table row or card opens edit mode with the jump pre-populated. The `N` shortcut is registered globally on `window` in `onMounted` and cleaned up in `onUnmounted`.
+
+**Mutation actions** in `stores/jumps.js`: `createJump`, `updateJump`, `deleteJump` — all call the API then trigger a `fetchJumps()` refresh to keep the list consistent with auto-renumbering.
 
 ### API Client
 

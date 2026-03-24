@@ -3,7 +3,7 @@ ticket: "003"
 epic: jump-form-ui
 milestone: v1
 title: Autocomplete Fields
-status: planned
+status: in-progress
 priority: medium
 estimate: M
 ---
@@ -21,3 +21,5 @@ Reusable autocomplete input component backed by the autocomplete API.
 - [ ] Keyboard navigation: arrow keys, Enter to select, Escape to dismiss
 - [ ] Debounced input (200ms)
 - [ ] Allows freeform input (not restricted to existing values)
+- [ ] Dropdown floats above other modal content (z-index)
+- [ ] Closes dropdown on blur/outside click

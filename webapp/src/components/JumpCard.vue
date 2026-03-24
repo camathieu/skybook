@@ -1,7 +1,8 @@
 <script setup>
-defineProps({
+const props = defineProps({
   jump: { type: Object, required: true },
 })
+const emit = defineEmits(['edit'])
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -16,7 +17,7 @@ function formatAltitude(alt) {
 </script>
 
 <template>
-  <div class="card jump-card" tabindex="0">
+  <div class="card jump-card" tabindex="0" style="cursor:pointer" @click="emit('edit', jump)" @keydown.enter="emit('edit', jump)">
     <div class="card-header">
       <span class="jump-number">#{{ jump.number }}</span>
       <span class="jump-date">{{ formatDate(jump.date) }}</span>

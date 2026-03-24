@@ -50,16 +50,8 @@ function closeMobileMenu() {
         <span class="nav-tab disabled" title="Coming in v10">Tunnel</span>
       </nav>
 
-      <!-- Right: CTA -->
-      <div class="header-right">
-        <button class="btn-primary new-jump-btn" aria-label="New jump">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/>
-          </svg>
-          <span class="new-jump-label">New Jump</span>
-          <span class="kbd desktop-only">N</span>
-        </button>
-      </div>
+      <!-- Right (empty placeholder to keep nav centered) -->
+      <div class="header-right"></div>
     </div>
 
     <!-- Mobile nav drawer -->
@@ -183,16 +175,6 @@ function closeMobileMenu() {
   gap: 0.75rem;
 }
 
-.new-jump-btn {
-  gap: 0.375rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.8125rem;
-}
-
-.desktop-only {
-  display: inline-flex;
-}
-
 /* Mobile nav drawer */
 .mobile-nav {
   display: none;
@@ -261,17 +243,6 @@ function closeMobileMenu() {
 
   .mobile-nav {
     display: flex;
-  }
-
-  .new-jump-label {
-    display: none;
-  }
-
-  .new-jump-btn {
-    padding: 0.5rem;
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
   }
 
   .desktop-only {

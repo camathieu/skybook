@@ -67,6 +67,23 @@ export const useJumpStore = defineStore('jumps', () => {
     }
   }
 
+  async function createJump(data) {
+    const jump = await api.post('/jumps', data)
+    await fetchJumps() // refresh list to maintain exact sorting/numbering
+    return jump
+  }
+
+  async function updateJump(id, data) {
+    const jump = await api.put(`/jumps/${id}`, data)
+    await fetchJumps()
+    return jump
+  }
+
+  async function deleteJump(id) {
+    await api.delete(`/jumps/${id}`)
+    await fetchJumps()
+  }
+
   function setSort(field) {
     if (sortBy.value === field) {
       order.value = order.value === 'asc' ? 'desc' : 'asc'
@@ -161,6 +178,9 @@ export const useJumpStore = defineStore('jumps', () => {
 
     // Actions
     fetchJumps,
+    createJump,
+    updateJump,
+    deleteJump,
     setSort,
     setPage,
     setPerPage,

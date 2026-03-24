@@ -3,7 +3,7 @@ ticket: "001"
 epic: jump-form-ui
 milestone: v1
 title: Create Jump Modal
-status: planned
+status: in-progress
 priority: high
 estimate: L
 ---
@@ -22,3 +22,6 @@ Modal form for creating a new jump, optimized for speed.
 - [ ] Optional "Insert at position" to specify jump number
 - [ ] Submit creates jump via API, refreshes table, shows success toast
 - [ ] `Escape` or backdrop click closes with unsaved-changes warning
+- [ ] **Mobile responsive**: Modal becomes a full-screen sheet on screens < 640px.
+- [ ] **Touch-friendly**: Inputs have min 44px hit areas on mobile.
+- [ ] **Validation**: Errors displayed inline for missing required fields (Date, Dropzone, JumpType).
