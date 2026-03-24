@@ -60,7 +60,8 @@ describe('AutocompleteInput', () => {
     expect(api.get).toHaveBeenCalledWith('/jumps/autocomplete/dropzone?q=Emp')
   })
 
-  it('clears suggestions when input is emptied', async () => {
+  it('re-fetches all suggestions when input is cleared', async () => {
+    api.get.mockResolvedValueOnce(['Empuriabrava', 'Perris'])
     const wrapper = mount(AutocompleteInput, {
       props: { field: 'dropzone', modelValue: 'Emp' },
     })
@@ -68,7 +69,22 @@ describe('AutocompleteInput', () => {
     await input.setValue('')
     vi.advanceTimersByTime(250)
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('ul.suggestions').exists()).toBe(false)
+    await wrapper.vm.$nextTick()
+    // Clearing the field fetches all recent values (no q param)
+    expect(api.get).toHaveBeenCalledWith('/jumps/autocomplete/dropzone')
+  })
+
+  it('shows suggestions on focus without typing (on-focus recent values)', async () => {
+    api.get.mockResolvedValueOnce(['Empuriabrava', 'Perris', 'DeLand'])
+    const wrapper = mount(AutocompleteInput, {
+      props: { field: 'dropzone', modelValue: '' },
+    })
+    const input = wrapper.find('input')
+    await input.trigger('focus')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+    // Should call API with no prefix (empty field)
+    expect(api.get).toHaveBeenCalledWith('/jumps/autocomplete/dropzone')
   })
 
   it('closes dropdown on Escape key', async () => {

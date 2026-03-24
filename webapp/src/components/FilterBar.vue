@@ -2,19 +2,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useJumpStore } from '../stores/jumps.js'
 import { api } from '../api.js'
+import CustomSelect from './CustomSelect.vue'
 
 const store = useJumpStore()
 const showMobileFilters = ref(false)
 const dropzoneOptions = ref([])
-
-const jumpTypes = [
-  'FF', 'FS', 'CRW', 'HOP', 'CF', 'AFF',
-  'TANDEM', 'DEMO', 'XRW', 'ANGLE', 'TRACKING', 'CP', 'WINGSUIT', 'OTHER'
-]
+const aircraftOptions = ref([])
+const jumpTypeOptions = ref([])
 
 const activeFilters = computed(() => {
   const chips = []
   if (store.filters.dropzone) chips.push({ key: 'dropzone', label: `DZ: ${store.filters.dropzone}` })
+  if (store.filters.aircraft) chips.push({ key: 'aircraft', label: `✈ ${store.filters.aircraft}` })
   if (store.filters.jumpType) chips.push({ key: 'jumpType', label: `Type: ${store.filters.jumpType}` })
   if (store.filters.dateFrom) chips.push({ key: 'dateFrom', label: `From: ${store.filters.dateFrom}` })
   if (store.filters.dateTo) chips.push({ key: 'dateTo', label: `To: ${store.filters.dateTo}` })
@@ -33,10 +32,28 @@ function removeFilter(key) {
 
 async function loadDropzones() {
   try {
-    const results = await api.get('/jumps/autocomplete/dropzone')
-    dropzoneOptions.value = results.map(r => r.value)
+    const results = await api.get('/jumps/autocomplete/dropzone?sort=alpha')
+    dropzoneOptions.value = results || []
   } catch {
     dropzoneOptions.value = []
+  }
+}
+
+async function loadAircraft() {
+  try {
+    const results = await api.get('/jumps/autocomplete/aircraft?sort=alpha')
+    aircraftOptions.value = results || []
+  } catch {
+    aircraftOptions.value = []
+  }
+}
+
+async function loadJumpTypes() {
+  try {
+    const results = await api.get('/jumps/autocomplete/jump_type?sort=alpha')
+    jumpTypeOptions.value = results || []
+  } catch {
+    jumpTypeOptions.value = []
   }
 }
 
@@ -52,6 +69,8 @@ function toggleBool(key) {
 
 onMounted(() => {
   loadDropzones()
+  loadAircraft()
+  loadJumpTypes()
 })
 </script>
 
@@ -68,25 +87,29 @@ onMounted(() => {
   <!-- Filter content -->
   <div class="filter-bar" :class="{ 'mobile-open': showMobileFilters }">
     <div class="filter-row">
-      <!-- Jump Type -->
-      <select
-        v-model="store.filters.jumpType"
-        class="filter-select"
-        aria-label="Filter by jump type"
-      >
-        <option value="">All types</option>
-        <option v-for="t in jumpTypes" :key="t" :value="t">{{ t }}</option>
-      </select>
-
       <!-- Dropzone -->
-      <select
+      <CustomSelect
         v-model="store.filters.dropzone"
-        class="filter-select"
+        :options="dropzoneOptions"
+        placeholder="All dropzones"
         aria-label="Filter by dropzone"
-      >
-        <option value="">All dropzones</option>
-        <option v-for="dz in dropzoneOptions" :key="dz" :value="dz">{{ dz }}</option>
-      </select>
+      />
+
+      <!-- Aircraft -->
+      <CustomSelect
+        v-model="store.filters.aircraft"
+        :options="aircraftOptions"
+        placeholder="All aircraft"
+        aria-label="Filter by aircraft"
+      />
+
+      <!-- Jump Type -->
+      <CustomSelect
+        v-model="store.filters.jumpType"
+        :options="jumpTypeOptions"
+        placeholder="All types"
+        aria-label="Filter by jump type"
+      />
 
       <!-- Date range -->
       <input
@@ -157,7 +180,6 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
-.filter-select,
 .filter-date {
   min-height: 40px;
   padding: 0.5rem 0.75rem;
@@ -170,14 +192,9 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.filter-select:focus,
 .filter-date:focus {
   outline: none;
   border-color: var(--color-accent-teal);
-}
-
-.filter-select {
-  min-width: 120px;
 }
 
 .filter-date {

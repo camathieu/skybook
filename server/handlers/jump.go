@@ -66,6 +66,7 @@ func ListJumps(db *metadata.Backend) http.HandlerFunc {
 		filters := metadata.JumpFilters{
 			Q:        q.Get("q"),
 			Dropzone: q.Get("dropzone"),
+			Aircraft: q.Get("aircraft"),
 			JumpType: q.Get("jump_type"),
 			LO:       q.Get("lo"),
 		}
@@ -343,12 +344,16 @@ func DeleteJump(db *metadata.Backend) http.HandlerFunc {
 }
 
 // Autocomplete handles GET /api/v1/jumps/autocomplete/{field}
+// Optional query params:
+//   - q: prefix filter
+//   - sort: "alpha" for alphabetical; default is recency (MAX(date) DESC)
 func Autocomplete(db *metadata.Backend) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		field := mux.Vars(r)["field"]
 		prefix := r.URL.Query().Get("q")
+		sortBy := r.URL.Query().Get("sort")
 
-		results, err := db.GetJumpAutocomplete(anonymousUserID, field, prefix, 20)
+		results, err := db.GetJumpAutocomplete(anonymousUserID, field, prefix, sortBy, 20)
 		if err != nil {
 			if errors.Is(err, metadata.ErrUnsupportedAutocompleteField) {
 				common.WriteError(w, err.Error(), http.StatusBadRequest)

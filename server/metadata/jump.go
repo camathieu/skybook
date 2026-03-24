@@ -29,18 +29,13 @@ type JumpFilters struct {
 	DateFrom    *time.Time
 	DateTo      *time.Time
 	Dropzone    string
+	Aircraft    string
 	JumpType    string
 	AltitudeMin *uint
 	AltitudeMax *uint
 	Cutaway     *bool
 	Night       *bool
 	LO          string
-}
-
-// AutocompleteResult is a single autocomplete suggestion.
-type AutocompleteResult struct {
-	Value string `json:"value"`
-	Count int    `json:"count"`
 }
 
 // CreateJump appends a new jump at the end of the user's logbook.
@@ -235,6 +230,9 @@ func (b *Backend) GetJumps(userID uint, offset, limit int, sortBy, order string,
 	if filters.Dropzone != "" {
 		q = q.Where("dropzone = ?", filters.Dropzone)
 	}
+	if filters.Aircraft != "" {
+		q = q.Where("aircraft = ?", filters.Aircraft)
+	}
 	if filters.JumpType != "" {
 		q = q.Where("jump_type = ?", filters.JumpType)
 	}
@@ -284,31 +282,36 @@ func (b *Backend) CountJumps(userID uint) (int64, error) {
 // allowedAutocompleteFields maps allowed field names to their SQL column names.
 // Note: only add fields that correspond to actual columns in the jumps table.
 var allowedAutocompleteFields = map[string]string{
-	"dropzone": "dropzone",
-	"aircraft": "aircraft",
-	"lo":       "lo",
-	"event":    "event",
+	"dropzone":  "dropzone",
+	"aircraft":  "aircraft",
+	"jump_type": "jump_type",
+	"lo":        "lo",
+	"event":     "event",
 }
 
-// GetJumpAutocomplete returns distinct values for a given field, ranked by frequency.
+// GetJumpAutocomplete returns distinct non-empty values for a given field.
+// sortBy: "alpha" → alphabetical (col ASC); anything else → recency (MAX(date) DESC).
+// If prefix is empty, all distinct values are returned (powers on-focus suggestions).
 // Only fields in allowedAutocompleteFields are supported.
-func (b *Backend) GetJumpAutocomplete(userID uint, field, prefix string, limit int) ([]AutocompleteResult, error) {
+func (b *Backend) GetJumpAutocomplete(userID uint, field, prefix, sortBy string, limit int) ([]string, error) {
 	col, ok := allowedAutocompleteFields[field]
 	if !ok {
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedAutocompleteField, field)
 	}
 
-	type row struct {
-		Value string
-		Count int
+	var orderClause string
+	if sortBy == "alpha" {
+		orderClause = col + " ASC"
+	} else {
+		orderClause = "MAX(date) DESC, " + col + " ASC"
 	}
 
-	var rows []row
+	var results []string
 	q := b.db.Model(&common.Jump{}).
-		Select(fmt.Sprintf("%s as value, COUNT(*) as count", col)).
+		Select(col).
 		Where("user_id = ? AND "+col+" != ''", userID).
 		Group(col).
-		Order("count DESC").
+		Order(orderClause).
 		Limit(limit)
 
 	if prefix != "" {
@@ -316,13 +319,9 @@ func (b *Backend) GetJumpAutocomplete(userID uint, field, prefix string, limit i
 		q = q.Where("LOWER("+col+") LIKE ?", strings.ToLower(prefix)+"%")
 	}
 
-	if err := q.Scan(&rows).Error; err != nil {
+	if err := q.Pluck(col, &results).Error; err != nil {
 		return nil, err
 	}
 
-	results := make([]AutocompleteResult, len(rows))
-	for i, r := range rows {
-		results[i] = AutocompleteResult{Value: r.Value, Count: r.Count}
-	}
 	return results, nil
 }

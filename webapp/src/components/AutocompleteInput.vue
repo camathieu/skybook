@@ -23,6 +23,27 @@ let debounceTimer = null
 const localValue = ref(props.modelValue)
 watch(() => props.modelValue, (v) => { localValue.value = v })
 
+async function fetchSuggestions(prefix) {
+  try {
+    const url = prefix
+      ? `/jumps/autocomplete/${props.field}?q=${encodeURIComponent(prefix)}`
+      : `/jumps/autocomplete/${props.field}`
+    const data = await api.get(url)
+    suggestions.value = data || []
+    open.value = suggestions.value.length > 0
+  } catch {
+    suggestions.value = []
+    open.value = false
+  }
+}
+
+async function onFocus() {
+  // Show recent values immediately on focus (even if the field is empty)
+  activeIndex.value = -1
+  clearTimeout(debounceTimer)
+  await fetchSuggestions(localValue.value.trim())
+}
+
 async function onInput(e) {
   const val = e.target.value
   localValue.value = val
@@ -30,21 +51,9 @@ async function onInput(e) {
   activeIndex.value = -1
 
   clearTimeout(debounceTimer)
-  if (!val.trim()) {
-    suggestions.value = []
-    open.value = false
-    return
-  }
-  debounceTimer = setTimeout(async () => {
-    try {
-      const data = await api.get(`/jumps/autocomplete/${props.field}?q=${encodeURIComponent(val)}`)
-      suggestions.value = (data || []).map(r => r.value)
-      open.value = suggestions.value.length > 0
-    } catch {
-      suggestions.value = []
-      open.value = false
-    }
-  }, 200)
+  // Intentional: clearing the field re-fetches all recent values (empty prefix → show all).
+  // This makes the dropdown act as a "recent values" list when the field is blank.
+  debounceTimer = setTimeout(() => fetchSuggestions(val.trim()), 200)
 }
 
 function select(val) {
@@ -94,6 +103,7 @@ onBeforeUnmount(() => clearTimeout(debounceTimer))
       :placeholder="placeholder"
       :required="required"
       autocomplete="off"
+      @focus="onFocus"
       @input="onInput"
       @keydown="onKeydown"
       @blur="onBlur"

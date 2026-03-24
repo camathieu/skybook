@@ -16,6 +16,8 @@ const (
 	JumpTypeHOP      JumpType = "HOP"
 	JumpTypeCF       JumpType = "CF"
 	JumpTypeAFF      JumpType = "AFF"
+	JumpTypeAFFI     JumpType = "AFFI"
+	JumpTypeCamera   JumpType = "CAMERA"
 	JumpTypeTandem   JumpType = "TANDEM"
 	JumpTypeDemo     JumpType = "DEMO"
 	JumpTypeXRW      JumpType = "XRW"
@@ -30,7 +32,8 @@ const (
 func (jt JumpType) IsValid() bool {
 	switch jt {
 	case JumpTypeFF, JumpTypeFS, JumpTypeCRW, JumpTypeHOP,
-		JumpTypeCF, JumpTypeAFF, JumpTypeTandem, JumpTypeDemo, JumpTypeXRW,
+		JumpTypeCF, JumpTypeAFF, JumpTypeAFFI, JumpTypeCamera,
+		JumpTypeTandem, JumpTypeDemo, JumpTypeXRW,
 		JumpTypeAngle, JumpTypeTracking, JumpTypeCP, JumpTypeWingsuit, JumpTypeOther:
 		return true
 	default:
@@ -42,7 +45,8 @@ func (jt JumpType) IsValid() bool {
 func AllJumpTypes() []JumpType {
 	return []JumpType{
 		JumpTypeFF, JumpTypeFS, JumpTypeCRW, JumpTypeHOP,
-		JumpTypeCF, JumpTypeAFF, JumpTypeTandem, JumpTypeDemo, JumpTypeXRW,
+		JumpTypeCF, JumpTypeAFF, JumpTypeAFFI, JumpTypeCamera,
+		JumpTypeTandem, JumpTypeDemo, JumpTypeXRW,
 		JumpTypeAngle, JumpTypeTracking, JumpTypeCP, JumpTypeWingsuit, JumpTypeOther,
 	}
 }

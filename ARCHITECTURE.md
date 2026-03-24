@@ -114,7 +114,7 @@ The core entity. All fields are defined in [PRD §3.1](plans/PRD.md).
 | `UserID` | `uint` (FK) | Multi-tenant readiness — defaults to anonymous user (ID=1) in v1 |
 | `Date` | `datetime` | Required |
 | `Dropzone` | `string` | Required, autocomplete from history |
-| `JumpType` | `string` | Enum: FF, WS, FS, CRW, HOP, etc. |
+| `JumpType` | `string` | Enum: FF, FS, CRW, HOP, CF, AFF, AFFI, CAMERA, TANDEM, DEMO, XRW, ANGLE, TRACKING, CP, WINGSUIT, OTHER |
 | `Links` | `JSON text` | Array of URLs, stored as JSON |
 | `Buddies` | `[]JumpBuddy` | Many-to-many via `jump_buddies` join table (v4) |
 
@@ -187,7 +187,7 @@ All endpoints prefixed with `/api/v1`. Responses use JSON.
 | `GET` | `/api/v1/jumps/:id` | Get single jump |
 | `PUT` | `/api/v1/jumps/:id` | Update jump |
 | `DELETE` | `/api/v1/jumps/:id` | Delete jump (triggers renumber) |
-| `GET` | `/api/v1/jumps/autocomplete/:field` | Distinct values for field, ranked by frequency |
+| `GET` | `/api/v1/jumps/autocomplete/:field` | Distinct values for field; `?sort=alpha` for A–Z (filter dropdowns), default is recency (modal autocomplete) |
 
 ### Other Endpoints
 
@@ -280,7 +280,7 @@ The jump create/edit workflow uses three new components:
 | Component | File | Description |
 |-----------|------|-------------|
 | `JumpModal.vue` | `components/` | Unified create/edit form — pass `jump` prop for edit mode, null for create. Full-screen sheet on mobile `<640px` |
-| `AutocompleteInput.vue` | `components/` | Debounced (200ms) autocomplete backed by `/api/v1/jumps/autocomplete/:field`; keyboard navigable dropdown |
+| `AutocompleteInput.vue` | `components/` | Debounced (200ms) autocomplete backed by `/api/v1/jumps/autocomplete/:field`; shows suggestions on focus and on input; keyboard navigable dropdown |
 | `ConfirmModal.vue` | `components/` | Generic danger confirmation dialog with loading state; reusable for any destructive action |
 
 **Modal trigger flow**: `JumpList` maintains `showModal: ref(bool)` and `editingJump: ref(jump|null)`. Clicking `+ New Jump` (or pressing `N`) opens create mode. Clicking a table row or card opens edit mode with the jump pre-populated. The `N` shortcut is registered globally on `window` in `onMounted` and cleaned up in `onUnmounted`.

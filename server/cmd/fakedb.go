@@ -45,9 +45,16 @@ func runFakedb(cmd *cobra.Command, args []string) {
 	config := common.NewConfig()
 	config.Database.Path = fakedbOutput
 
-	// If the file exists, delete it so we start fresh?
-	// The ticket says "Creates a SQLite database", let's be safe and let GORM append if it exists,
-	// but maybe warn the user. Actually, let's just use it.
+	// Always start fresh — delete the existing file so we don't hit UNIQUE constraint
+	// failures when the DB already contains jumps.
+	if _, statErr := os.Stat(fakedbOutput); statErr == nil {
+		log.Info("Removing existing database", "path", fakedbOutput)
+		if err := os.Remove(fakedbOutput); err != nil {
+			log.Error("Failed to remove existing database", "error", err)
+			os.Exit(1)
+		}
+	}
+
 	backend, err := metadata.NewBackend(config.Database, log)
 	if err != nil {
 		log.Error("Failed to init database", "error", err)
@@ -116,22 +123,38 @@ func runFakedb(cmd *cobra.Command, args []string) {
 			var altitude, freefall uint
 
 			prob := r.Float32()
-			if prob < 0.75 {
+			if prob < 0.55 {
 				jumpType = common.JumpTypeFF
 				altitude = uint(13000 + r.Intn(2000))
 				freefall = uint(40 + r.Intn(15))
-			} else if prob < 0.95 {
+			} else if prob < 0.70 {
 				jumpType = common.JumpTypeWingsuit
 				altitude = uint(13000 + r.Intn(2000))
 				freefall = uint(60 + r.Intn(30))
-			} else if prob < 0.96 {
-				jumpType = common.JumpTypeHOP
-				altitude = uint(3000 + r.Intn(2500))
-				freefall = uint(r.Intn(6))
-			} else {
+			} else if prob < 0.78 {
 				jumpType = common.JumpTypeFS
 				altitude = uint(12000 + r.Intn(3000))
 				freefall = uint(45 + r.Intn(15))
+			} else if prob < 0.84 {
+				jumpType = common.JumpTypeTracking
+				altitude = uint(12000 + r.Intn(2000))
+				freefall = uint(50 + r.Intn(20))
+			} else if prob < 0.89 {
+				jumpType = common.JumpTypeAFFI
+				altitude = uint(13000 + r.Intn(2000))
+				freefall = uint(55 + r.Intn(20))
+			} else if prob < 0.93 {
+				jumpType = common.JumpTypeCamera
+				altitude = uint(13000 + r.Intn(2000))
+				freefall = uint(50 + r.Intn(20))
+			} else if prob < 0.96 {
+				jumpType = common.JumpTypeCRW
+				altitude = uint(8000 + r.Intn(4000))
+				freefall = uint(120 + r.Intn(60))
+			} else {
+				jumpType = common.JumpTypeHOP
+				altitude = uint(3000 + r.Intn(2500))
+				freefall = uint(r.Intn(6))
 			}
 
 			// Canopy progression based on total jumps

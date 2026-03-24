@@ -340,14 +340,17 @@ func TestDeleteJump_NotFound(t *testing.T) {
 
 func TestAutocomplete_Dropzone(t *testing.T) {
 	db := testDB(t)
+	// Create 3 jumps at Skydive DeLand, then 1 more recent jump at Perris
+	past := time.Now().AddDate(0, 0, -7)
 	for i := 0; i < 3; i++ {
 		db.CreateJump(&common.Jump{
 			UserID:   1,
-			Date:     time.Now(),
+			Date:     past,
 			Dropzone: "Skydive DeLand",
 			JumpType: common.JumpTypeFF,
 		})
 	}
+	// Perris was used more recently — should sort first
 	db.CreateJump(&common.Jump{
 		UserID:   1,
 		Date:     time.Now(),
@@ -363,16 +366,16 @@ func TestAutocomplete_Dropzone(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", rr.Code)
 	}
-	var results []metadata.AutocompleteResult
+	var results []string
 	if err := json.NewDecoder(rr.Body).Decode(&results); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
 	if len(results) == 0 {
 		t.Fatal("expected autocomplete results")
 	}
-	// Top result should be "Skydive DeLand" with count 3
-	if results[0].Value != "Skydive DeLand" {
-		t.Errorf("expected top result 'Skydive DeLand', got %q", results[0].Value)
+	// Perris was used most recently — should sort first
+	if results[0] != "Perris" {
+		t.Errorf("expected top result 'Perris' (most recent), got %q", results[0])
 	}
 }
 
@@ -384,5 +387,37 @@ func TestAutocomplete_InvalidField(t *testing.T) {
 	handlers.Autocomplete(db)(rr, req)
 	if rr.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400, got %d", rr.Code)
+	}
+}
+
+func TestAutocomplete_AlphaSort(t *testing.T) {
+	db := testDB(t)
+	past := time.Now().AddDate(0, 0, -7)
+	// Create jumps: Perris most recently but Empuriabrava alphabetically first
+	db.CreateJump(&common.Jump{UserID: 1, Date: past, Dropzone: "Empuriabrava", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: time.Now(), Dropzone: "Perris", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: past, Dropzone: "Skydive DeLand", JumpType: common.JumpTypeFF})
+
+	req := httptest.NewRequest("GET", "/api/v1/jumps/autocomplete/dropzone?sort=alpha", nil)
+	req = mux.SetURLVars(req, map[string]string{"field": "dropzone"})
+	rr := httptest.NewRecorder()
+	handlers.Autocomplete(db)(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+	var results []string
+	if err := json.NewDecoder(rr.Body).Decode(&results); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	// Alphabetically: Empuriabrava < Perris < Skydive DeLand
+	if len(results) < 3 {
+		t.Fatalf("expected 3 results, got %d", len(results))
+	}
+	if results[0] != "Empuriabrava" {
+		t.Errorf("expected top result 'Empuriabrava' (alpha), got %q", results[0])
+	}
+	if results[1] != "Perris" {
+		t.Errorf("expected second result 'Perris' (alpha), got %q", results[1])
 	}
 }

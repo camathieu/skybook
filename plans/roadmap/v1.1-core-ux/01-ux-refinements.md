@@ -2,7 +2,7 @@
 epic: ux-refinements
 milestone: v1.1
 title: UX Refinements
-status: planned
+status: in-progress
 ---
 
 # UX Refinements
@@ -18,3 +18,5 @@ Small but high-impact usability improvements for the v1.0 jump logbook.
 - [005 — Modal Autofocus](01-ux-refinements/005-modal-autofocus.md)
 - [006 — Save & Add Another](01-ux-refinements/006-save-and-add-another.md)
 - [007 — Packjob Boolean](01-ux-refinements/007-packjob-boolean.md)
+- [008 — Date-Only Field](01-ux-refinements/008-date-only.md)
+- [009 — Date Order Validation](01-ux-refinements/009-date-order-validation.md)

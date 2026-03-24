@@ -18,6 +18,7 @@ export const useJumpStore = defineStore('jumps', () => {
   const filters = reactive({
     q: '',
     dropzone: '',
+    aircraft: '',
     jumpType: '',
     dateFrom: '',
     dateTo: '',
@@ -45,6 +46,7 @@ export const useJumpStore = defineStore('jumps', () => {
       // Filters
       if (filters.q) params.set('q', filters.q)
       if (filters.dropzone) params.set('dropzone', filters.dropzone)
+      if (filters.aircraft) params.set('aircraft', filters.aircraft)
       if (filters.jumpType) params.set('jump_type', filters.jumpType)
       if (filters.dateFrom) params.set('date_from', filters.dateFrom)
       if (filters.dateTo) params.set('date_to', filters.dateTo)
@@ -107,6 +109,7 @@ export const useJumpStore = defineStore('jumps', () => {
   function resetFilters() {
     filters.q = ''
     filters.dropzone = ''
+    filters.aircraft = ''
     filters.jumpType = ''
     filters.dateFrom = ''
     filters.dateTo = ''
@@ -119,6 +122,7 @@ export const useJumpStore = defineStore('jumps', () => {
     return !!(
       filters.q ||
       filters.dropzone ||
+      filters.aircraft ||
       filters.jumpType ||
       filters.dateFrom ||
       filters.dateTo ||
