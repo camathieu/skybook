@@ -368,6 +368,25 @@ Multi-stage build:
 
 ---
 
+## Testing
+
+### Backend (`make test`)
+
+All backend packages have unit test coverage using Go's standard `testing` library and `net/http/httptest`.
+
+| Package | Test file(s) | What's tested |
+|---------|-------------|--------------|
+| `common` | `jump_test.go`, `config_test.go`, `user_test.go` | Model validation, config loading/env overrides, anonymous user |
+| `metadata` | `backend_test.go` | Jump CRUD, numbering invariant (insert/delete/move), pagination, multi-user isolation |
+| `handlers` | `jump_test.go`, `misc_test.go` | All REST endpoints via httptest, autocomplete, health, config |
+| `middleware` | `logging_test.go`, `recovery_test.go`, `request_id_test.go` | Status capture, panic recovery → 500 JSON, UUID context injection |
+| `server` | `server_test.go` | Router construction, route registration, server start/shutdown lifecycle |
+| `cmd` | `fakedb_test.go` | FakeDB generation, jump count and numbering integrity |
+
+Tests use **in-memory SQLite** databases (`:memory:` via `metadata.NewBackend`) for isolation and speed.
+
+---
+
 ## Multi-Tenant Readiness
 
 Even in v1 (anonymous single-user mode):

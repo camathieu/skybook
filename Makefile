@@ -41,4 +41,4 @@ clean:
 
 # Docker
 docker:
-	docker build -t skybook .
+	docker build -t frechtechmafia/skybook .
