@@ -65,7 +65,6 @@ function sortIcon(col) {
           v-for="(jump, i) in store.items"
           :key="jump.id"
           class="jump-row"
-          :style="{ animationDelay: `${i * 30}ms` }"
           style="cursor:pointer"
           tabindex="0"
           @click="emit('edit', jump)"
@@ -163,18 +162,10 @@ function sortIcon(col) {
 
 .jump-row {
   transition: background-color var(--transition-fast);
-  animation: fadeInRow 300ms ease forwards;
-  opacity: 0;
 }
 
 .jump-row:hover {
   background-color: var(--color-surface-700);
-}
-
-@keyframes fadeInRow {
-  to {
-    opacity: 1;
-  }
 }
 
 /* Column styling */
