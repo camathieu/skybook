@@ -60,6 +60,14 @@ func (s *SkyBookServer) setupRouter() *mux.Router {
 	api := r.PathPrefix("/api/v1").Subrouter()
 	api.HandleFunc("/config", handlers.ConfigHandler(s.config)).Methods("GET")
 
+	// Jumps — autocomplete must be registered before /{id} to avoid mux conflicts
+	api.HandleFunc("/jumps/autocomplete/{field}", handlers.Autocomplete(s.backend)).Methods("GET")
+	api.HandleFunc("/jumps", handlers.ListJumps(s.backend)).Methods("GET")
+	api.HandleFunc("/jumps", handlers.CreateJump(s.backend)).Methods("POST")
+	api.HandleFunc("/jumps/{id:[0-9]+}", handlers.GetJump(s.backend)).Methods("GET")
+	api.HandleFunc("/jumps/{id:[0-9]+}", handlers.UpdateJump(s.backend)).Methods("PUT")
+	api.HandleFunc("/jumps/{id:[0-9]+}", handlers.DeleteJump(s.backend)).Methods("DELETE")
+
 	return r
 }
 

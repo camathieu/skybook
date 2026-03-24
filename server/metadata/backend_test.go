@@ -309,7 +309,7 @@ func TestGetJumps_Pagination(t *testing.T) {
 		b.CreateJump(testJump(1))
 	}
 
-	jumps, total, err := b.GetJumps(1, 0, 5, "number", "asc")
+	jumps, total, err := b.GetJumps(1, 0, 5, "number", "asc", JumpFilters{})
 	if err != nil {
 		t.Fatalf("GetJumps: %v", err)
 	}
@@ -324,7 +324,45 @@ func TestGetJumps_Pagination(t *testing.T) {
 	}
 }
 
-// assertContiguous verifies that jumps 1..n exist with no gaps for the given user.
+func TestMoveJump_Up(t *testing.T) {
+	b := testBackend(t)
+
+	for i := 0; i < 3; i++ {
+		b.CreateJump(testJump(1))
+	}
+
+	j3, _ := b.GetJumpByNumber(1, 3)
+	if err := b.MoveJump(j3, 1); err != nil {
+		t.Fatalf("MoveJump(3→1): %v", err)
+	}
+	assertContiguous(t, b, 1, 3)
+
+	// The moved jump should now be at #1
+	j, _ := b.GetJump(1, j3.ID)
+	if j.Number != 1 {
+		t.Errorf("expected moved jump at #1, got %d", j.Number)
+	}
+}
+
+func TestMoveJump_Down(t *testing.T) {
+	b := testBackend(t)
+
+	for i := 0; i < 3; i++ {
+		b.CreateJump(testJump(1))
+	}
+
+	j1, _ := b.GetJumpByNumber(1, 1)
+	if err := b.MoveJump(j1, 3); err != nil {
+		t.Fatalf("MoveJump(1→3): %v", err)
+	}
+	assertContiguous(t, b, 1, 3)
+
+	j, _ := b.GetJump(1, j1.ID)
+	if j.Number != 3 {
+		t.Errorf("expected moved jump at #3, got %d", j.Number)
+	}
+}
+
 func assertContiguous(t *testing.T, b *Backend, userID uint, expectedCount int64) {
 	t.Helper()
 	for i := uint(1); i <= uint(expectedCount); i++ {

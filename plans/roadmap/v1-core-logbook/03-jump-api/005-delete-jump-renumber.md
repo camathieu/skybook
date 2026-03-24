@@ -3,7 +3,7 @@ ticket: "005"
 epic: jump-api
 milestone: v1
 title: Delete Jump (Renumber)
-status: planned
+status: done
 priority: high
 estimate: S
 ---
@@ -14,8 +14,17 @@ estimate: S
 
 ## Acceptance Criteria
 
-- [ ] Deletes the jump by ID
-- [ ] All jumps with `Number > deleted.Number` shift down by 1
-- [ ] Wrapped in a transaction
-- [ ] Returns `204 No Content` on success
-- [ ] Returns `404 Not Found` if jump doesn't exist
+- [x] Deletes the jump by ID
+- [x] All jumps with `Number > deleted.Number` shift down by 1
+- [x] Wrapped in a transaction
+- [x] Returns `204 No Content` on success
+- [x] Returns `404 Not Found` if jump doesn't exist
+- [x] Query scoped to current user (UserID=1 in v1)
+
+
+## Done
+
+- Epic completed: All 6 HTTP handlers implemented in `server/handlers/jump.go`
+- Metadata layer extended with MoveJump and JumpFilters
+- Fully tested (37 passing tests across handlers and metadata)
+- Verified via `/review-changes`

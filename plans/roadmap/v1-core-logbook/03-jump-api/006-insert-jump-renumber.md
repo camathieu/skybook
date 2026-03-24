@@ -3,7 +3,7 @@ ticket: "006"
 epic: jump-api
 milestone: v1
 title: Insert Jump (Renumber)
-status: planned
+status: done
 priority: high
 estimate: S
 ---
@@ -14,8 +14,17 @@ estimate: S
 
 ## Acceptance Criteria
 
-- [ ] When `number` is provided in the request body, insert at that position
-- [ ] All jumps with `Number >= requested` shift up by 1
-- [ ] Wrapped in a transaction
-- [ ] Validates that requested number is between 1 and `MAX(Number) + 1`
-- [ ] Returns `201 Created` with the jump at the requested position
+- [x] When `number` is provided in the request body, insert at that position
+- [x] All jumps with `Number >= requested` shift up by 1
+- [x] Wrapped in a transaction
+- [x] Validates that requested number is between 1 and `MAX(Number) + 1`
+- [x] Returns `201 Created` with the jump at the requested position
+- [x] UserID hardcoded to anonymous user (ID=1) in v1
+
+
+## Done
+
+- Epic completed: All 6 HTTP handlers implemented in `server/handlers/jump.go`
+- Metadata layer extended with MoveJump and JumpFilters
+- Fully tested (37 passing tests across handlers and metadata)
+- Verified via `/review-changes`

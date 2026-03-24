@@ -146,26 +146,31 @@ In v1, an anonymous user (ID=1) is auto-created. All data is attributed to this 
 | Operation | Behavior |
 |-----------|----------|
 | **Append** | `Number = MAX(Number) + 1` |
-| **Insert at position N** | `UPDATE SET number = number + 1 WHERE number >= N` (descending order to avoid unique constraint), then insert at N |
-| **Delete jump N** | Remove jump, `UPDATE SET number = number - 1 WHERE number > N` |
+| **Insert at position N** | Shift `[N…MAX]` up by 1 (DESC order), then insert at N |
+| **Delete jump N** | Remove jump, shift `[N+1…MAX]` down by 1 (ASC order) |
+| **Move jump N → M** | Park at sentinel, shift intermediate range, place at M |
 | **Bulk import** | Disable auto-numbering, assign final numbers, validate contiguity |
 
 All operations are wrapped in a **database transaction** for atomicity.
 
+> [!NOTE]
+> SQLite checks unique constraints **immediately** (not deferred). All shift operations must iterate row-by-row in the correct order: **DESC** when shifting numbers up, **ASC** when shifting numbers down. The single-statement `UPDATE ... ORDER BY` would require deferred constraints which SQLite does not support.
+
 ```go
-// Pseudocode — Insert at position
-func InsertJumpAt(tx *gorm.DB, userID uint, position uint, jump *Jump) error {
-    // Shift existing jumps up (ORDER BY number DESC to avoid unique violations)
-    tx.Model(&Jump{}).
-        Where("user_id = ? AND number >= ?", userID, position).
-        Order("number DESC").
-        Update("number", gorm.Expr("number + 1"))
-    
+// Pseudocode — Insert at position (actual impl uses iterative updates)
+func InsertJumpAt(tx *gorm.DB, userID, position uint, jump *Jump) error {
+    // Load rows to shift in DESC order, update one-by-one
+    var toShift []*Jump
+    tx.Where("user_id = ? AND number >= ?", userID, position).
+        Order("number DESC").Find(&toShift)
+    for _, j := range toShift {
+        tx.Model(j).Update("number", j.Number+1)
+    }
     jump.Number = position
-    jump.UserID = userID
     return tx.Create(jump).Error
 }
 ```
+
 
 ---
 
@@ -358,5 +363,8 @@ Even in v1 (anonymous single-user mode):
 | **v8** | Internationalization — vue-i18n, unit system | Planned |
 | **v9** | BASE Jump Logbook — separate tab, BASE-specific fields | Planned |
 | **v10** | Tunnel Time Tracker — session tracking, cumulative time | Planned |
+| **v11** | Gear & Kit Tracking — detailed equipment items, sizes, kits | Planned |
+| **v12** | Location Directory — shared Dropzone, ExitPoint, WindTunnel tables | Planned |
+| **v13** | Wingloading Calculator — standalone UI utility | Planned |
 
 Full details: [plans/PRD.md](plans/PRD.md) and [plans/roadmap/](plans/roadmap/)

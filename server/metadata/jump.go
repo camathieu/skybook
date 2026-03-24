@@ -1,7 +1,10 @@
 package metadata
 
 import (
+	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -9,11 +12,41 @@ import (
 	"github.com/root-gg/skybook/common"
 )
 
+// ErrUnsupportedAutocompleteField is returned when an unsupported field is passed to GetJumpAutocomplete.
+var ErrUnsupportedAutocompleteField = errors.New("unsupported autocomplete field")
+
+// allowedSortFields is the whitelist of columns allowed for sorting in GetJumps.
+var allowedSortFields = map[string]bool{
+	"number":   true,
+	"date":     true,
+	"dropzone": true,
+	"altitude": true,
+}
+
+// JumpFilters holds optional filter parameters for listing jumps.
+type JumpFilters struct {
+	Q           string
+	DateFrom    *time.Time
+	DateTo      *time.Time
+	Dropzone    string
+	JumpType    string
+	AltitudeMin *uint
+	AltitudeMax *uint
+	Cutaway     *bool
+	Night       *bool
+	LO          string
+}
+
+// AutocompleteResult is a single autocomplete suggestion.
+type AutocompleteResult struct {
+	Value string `json:"value"`
+	Count int    `json:"count"`
+}
+
 // CreateJump appends a new jump at the end of the user's logbook.
 // The Number is automatically set to MAX(Number)+1.
 func (b *Backend) CreateJump(jump *common.Jump) error {
 	return b.db.Transaction(func(tx *gorm.DB) error {
-		// Get next number
 		var maxNumber uint
 		tx.Model(&common.Jump{}).
 			Where("user_id = ?", jump.UserID).
@@ -33,7 +66,6 @@ func (b *Backend) InsertJumpAt(jump *common.Jump, pos uint) error {
 	}
 
 	return b.db.Transaction(func(tx *gorm.DB) error {
-		// Check that pos is within bounds (allow appending at end+1)
 		var count int64
 		tx.Model(&common.Jump{}).Where("user_id = ?", jump.UserID).Count(&count)
 
@@ -42,7 +74,7 @@ func (b *Backend) InsertJumpAt(jump *common.Jump, pos uint) error {
 		}
 
 		// Shift existing jumps up. SQLite doesn't support UPDATE ... ORDER BY,
-		// and we must update in descending order to avoid unique constraint violations.
+		// so we iterate in descending order to avoid unique constraint violations.
 		if count > 0 && pos <= uint(count) {
 			var jumpsToShift []*common.Jump
 			if err := tx.Where("user_id = ? AND number >= ?", jump.UserID, pos).
@@ -68,12 +100,11 @@ func (b *Backend) DeleteJump(jump *common.Jump) error {
 		number := jump.Number
 		userID := jump.UserID
 
-		// Delete the jump
 		if err := tx.Delete(jump).Error; err != nil {
 			return err
 		}
 
-		// Shift subsequent jumps down. Must be ascending order to avoid unique constraint.
+		// Shift subsequent jumps down in ascending order to avoid unique constraint.
 		var jumpsToShift []*common.Jump
 		if err := tx.Where("user_id = ? AND number > ?", userID, number).
 			Order("number ASC").
@@ -85,6 +116,74 @@ func (b *Backend) DeleteJump(jump *common.Jump) error {
 				return err
 			}
 		}
+		return nil
+	})
+}
+
+// MoveJump repositions a jump to a new number within the user's logbook.
+// It parks the jump at a large sentinel value, shifts the intermediate range,
+// then sets the jump to the new position — all within a single transaction.
+func (b *Backend) MoveJump(jump *common.Jump, newNumber uint) error {
+	if newNumber < 1 {
+		return fmt.Errorf("number must be >= 1")
+	}
+
+	return b.db.Transaction(func(tx *gorm.DB) error {
+		var count int64
+		tx.Model(&common.Jump{}).Where("user_id = ?", jump.UserID).Count(&count)
+		if newNumber > uint(count) {
+			return fmt.Errorf("number %d out of range (max %d)", newNumber, count)
+		}
+
+		oldNumber := jump.Number
+		userID := jump.UserID
+
+		if newNumber == oldNumber {
+			return nil
+		}
+
+		// Park at a high sentinel to free the unique slot while we shift.
+		// We use raw Exec to bypass GORM's zero-value filtering on uint fields.
+		const jumpNumberSentinel uint = 999_999_999
+		if err := tx.Exec("UPDATE jumps SET number = ? WHERE id = ?", jumpNumberSentinel, jump.ID).Error; err != nil {
+			return fmt.Errorf("park jump: %w", err)
+		}
+
+		if newNumber < oldNumber {
+			// Moving up: shift rows in [newNumber, oldNumber-1] from position X to X+1.
+			// Must process in DESC order (highest number first) to avoid unique constraint.
+			var jumpsToShift []*common.Jump
+			if err := tx.Where("user_id = ? AND number >= ? AND number < ?", userID, newNumber, oldNumber).
+				Order("number DESC").
+				Find(&jumpsToShift).Error; err != nil {
+				return err
+			}
+			for _, j := range jumpsToShift {
+				if err := tx.Model(j).Update("number", j.Number+1).Error; err != nil {
+					return err
+				}
+			}
+		} else {
+			// Moving down: shift rows in [oldNumber+1, newNumber] from position X to X-1.
+			// Must process in ASC order (lowest number first) to avoid unique constraint.
+			var jumpsToShift []*common.Jump
+			if err := tx.Where("user_id = ? AND number > ? AND number <= ?", userID, oldNumber, newNumber).
+				Order("number ASC").
+				Find(&jumpsToShift).Error; err != nil {
+				return err
+			}
+			for _, j := range jumpsToShift {
+				if err := tx.Model(j).Update("number", j.Number-1).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		// Place the jump at its final position
+		if err := tx.Exec("UPDATE jumps SET number = ? WHERE id = ?", newNumber, jump.ID).Error; err != nil {
+			return fmt.Errorf("place jump: %w", err)
+		}
+		jump.Number = newNumber
 		return nil
 	})
 }
@@ -109,31 +208,67 @@ func (b *Backend) GetJumpByNumber(userID, number uint) (*common.Jump, error) {
 	return jump, nil
 }
 
-// UpdateJump updates a jump's fields (except Number — use InsertJumpAt/DeleteJump to reorder).
+// UpdateJump persists changes to a jump's fields (excluding Number — use MoveJump).
 func (b *Backend) UpdateJump(jump *common.Jump) error {
 	return b.db.Omit(clause.Associations).Save(jump).Error
 }
 
-// GetJumps retrieves a paginated list of jumps for a user.
-func (b *Backend) GetJumps(userID uint, offset, limit int, sortBy, order string) ([]*common.Jump, int64, error) {
+// GetJumps retrieves a paginated, filtered list of jumps for a user.
+func (b *Backend) GetJumps(userID uint, offset, limit int, sortBy, order string, filters JumpFilters) ([]*common.Jump, int64, error) {
 	var jumps []*common.Jump
 	var total int64
 
-	query := b.db.Where("user_id = ?", userID)
+	q := b.db.Model(&common.Jump{}).Where("user_id = ?", userID)
 
-	// Count total matching
-	query.Model(&common.Jump{}).Count(&total)
+	if filters.Q != "" {
+		like := "%" + filters.Q + "%"
+		q = q.Where("description LIKE ? OR dropzone LIKE ? OR event LIKE ? OR lo LIKE ?", like, like, like, like)
+	}
+	if filters.DateFrom != nil {
+		q = q.Where("date >= ?", filters.DateFrom)
+	}
+	if filters.DateTo != nil {
+		q = q.Where("date <= ?", filters.DateTo)
+	}
+	if filters.Dropzone != "" {
+		q = q.Where("dropzone = ?", filters.Dropzone)
+	}
+	if filters.JumpType != "" {
+		q = q.Where("jump_type = ?", filters.JumpType)
+	}
+	if filters.AltitudeMin != nil {
+		q = q.Where("altitude >= ?", *filters.AltitudeMin)
+	}
+	if filters.AltitudeMax != nil {
+		q = q.Where("altitude <= ?", *filters.AltitudeMax)
+	}
+	if filters.Cutaway != nil {
+		q = q.Where("cut_away = ?", *filters.Cutaway)
+	}
+	if filters.Night != nil {
+		q = q.Where("night_jump = ?", *filters.Night)
+	}
+	if filters.LO != "" {
+		q = q.Where("lo = ?", filters.LO)
+	}
 
-	// Apply sort
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
 	if sortBy == "" {
 		sortBy = "number"
+	} else if !allowedSortFields[sortBy] {
+		return nil, 0, fmt.Errorf("invalid sort field: %s", sortBy)
 	}
 	if order == "" {
 		order = "desc"
+	} else if order != "asc" && order != "desc" {
+		return nil, 0, fmt.Errorf("invalid order: %s", order)
 	}
 	orderClause := fmt.Sprintf("%s %s", sortBy, order)
 
-	err := query.Order(orderClause).Offset(offset).Limit(limit).Find(&jumps).Error
+	err := q.Order(orderClause).Offset(offset).Limit(limit).Find(&jumps).Error
 	return jumps, total, err
 }
 
@@ -142,4 +277,50 @@ func (b *Backend) CountJumps(userID uint) (int64, error) {
 	var count int64
 	err := b.db.Model(&common.Jump{}).Where("user_id = ?", userID).Count(&count).Error
 	return count, err
+}
+
+// allowedAutocompleteFields maps allowed field names to their SQL column names.
+var allowedAutocompleteFields = map[string]string{
+	"dropzone":  "dropzone",
+	"aircraft":  "aircraft",
+	"equipment": "equipment",
+	"lo":        "lo",
+	"event":     "event",
+}
+
+// GetJumpAutocomplete returns distinct values for a given field, ranked by frequency.
+// Only fields in allowedAutocompleteFields are supported.
+func (b *Backend) GetJumpAutocomplete(userID uint, field, prefix string, limit int) ([]AutocompleteResult, error) {
+	col, ok := allowedAutocompleteFields[field]
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedAutocompleteField, field)
+	}
+
+	type row struct {
+		Value string
+		Count int
+	}
+
+	var rows []row
+	q := b.db.Model(&common.Jump{}).
+		Select(fmt.Sprintf("%s as value, COUNT(*) as count", col)).
+		Where("user_id = ? AND "+col+" != ''", userID).
+		Group(col).
+		Order("count DESC").
+		Limit(limit)
+
+	if prefix != "" {
+		// Use LOWER() on both sides for true case-insensitive matching.
+		q = q.Where("LOWER("+col+") LIKE ?", strings.ToLower(prefix)+"%")
+	}
+
+	if err := q.Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	results := make([]AutocompleteResult, len(rows))
+	for i, r := range rows {
+		results[i] = AutocompleteResult{Value: r.Value, Count: r.Count}
+	}
+	return results, nil
 }

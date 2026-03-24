@@ -169,8 +169,90 @@ Separate table and webapp tab. Numbered sequentially.
 | `Name` | `string` | Display name |
 | `Locale` | `string` | Preferred locale (v8) |
 | `UnitSystem` | `string` | `imperial` / `metric` |
+| `Weight` | `uint` | User body weight (optional, v13) |
+| `GearWeight` | `uint` | Default gear weight (optional, v13) |
 | `CreatedAt` | `datetime` | |
 | `UpdatedAt` | `datetime` | |
+
+### 3.7 Gear (v11)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ID` | `uint` (PK) | |
+| `UserID` | `uint` (FK) | Owner |
+| `Type` | `string` | `CANOPY`, `RESERVE`, `HARNESS`, `AAD`, `HELMET`, `ALTIMETER`, `JUMPSUIT`, `WINGSUIT`, `CAMERA`, `AUDIBLE`, `OTHER` |
+| `Manufacturer` | `string` | |
+| `Model` | `string` | |
+| `Size` | `string` | e.g. "190", "M" |
+| `Serial` | `string` | |
+| `DOM` | `datetime` | Date of manufacture |
+| `PurchaseDate` | `datetime` | |
+| `PurchasePrice` | `uint` | Price paid in cents |
+| `NextMaintenanceAt`| `datetime` | Next service date |
+| `Notes` | `string` | |
+| `Active` | `bool` | |
+| `CreatedAt` | `datetime` | |
+| `UpdatedAt` | `datetime` | |
+
+### 3.8 Kit (v11)
+
+A convenience grouping of Gear items that can be applied to a Jump.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ID` | `uint` (PK) | |
+| `UserID` | `uint` (FK) | Owner |
+| `Name` | `string` | Kit name |
+| `GearItems`| `[]Gear` | Many-to-many via `kit_gear` |
+| `CreatedAt` | `datetime` | |
+| `UpdatedAt` | `datetime` | |
+
+### 3.9 Dropzone (v12)
+
+A globally shared canonical directory of dropzones.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ID` | `uint` (PK) | |
+| `Name` | `string` | Canonical name |
+| `Country` | `string` | ISO 3166-1 alpha-2 |
+| `City` | `string` | Nearest city |
+| `ICAO` | `string` | Airport code |
+| `Latitude` | `float64` | GPS |
+| `Longitude`| `float64` | GPS |
+| `Website` | `string` | |
+| `Email` | `string` | |
+| `Phone` | `string` | |
+
+### 3.10 ExitPoint (v12)
+
+A globally shared canonical directory of BASE objects.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ID` | `uint` (PK) | |
+| `Name` | `string` | Exit point name |
+| `Object` | `string` | `BUILDING`, `ANTENNA`, `SPAN`, `EARTH`, `OTHER` |
+| `Country` | `string` | ISO 3166-1 alpha-2 |
+| `Region` | `string` | State/Province |
+| `Latitude` | `float64` | GPS |
+| `Longitude`| `float64` | GPS |
+| `Notes` | `string` | Approach info, hazards |
+
+### 3.11 WindTunnel (v12)
+
+A globally shared canonical directory of wind tunnels.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ID` | `uint` (PK) | |
+| `Name` | `string` | Wind tunnel name |
+| `Country` | `string` | ISO 3166-1 alpha-2 |
+| `City` | `string` | |
+| `DiameterFt`| `uint` | Diameter in feet |
+| `Website` | `string` | |
+| `Email` | `string` | |
+| `Phone` | `string` | |
 
 ---
 
@@ -450,8 +532,9 @@ Even in v1 (anonymous/single-user), the data model includes a `UserID` foreign k
 
 | Version | Feature | Status |
 |---------|---------|--------|
-| **v11** | **Gear & Kit Tracking** — `Gear` table (canopy, harness, reserve, AAD, wingsuit, helmet, camera, suit, other), `Kit` groupings, jump linkage. Supersedes `Wingsuit bool` on `Jump`. | Planned |
-| **v12** | **Dropzone Directory** — Replace `Dropzone string` with a shared `Dropzone` table (name, country, city, ICAO, GPS). Enables cross-user canonical data and richer autocomplete. Migration path: add nullable `DropzoneID` FK, resolve existing strings, eventually enforce FK. | Planned |
+| **v11** | **Gear & Kit Tracking** — `Gear` table with type, model, size, DOM, purchase price, maintenance date; `Kit` shortcuts; jump linkage via `jump_gear`. | Planned |
+| **v12** | **Location Directory** — Shared directory replacing strings. Three separated models: `Dropzone` (jumps), `ExitPoint` (BASE), `WindTunnel` (tunnel sessions). Includes seed community data. | Planned |
+| **v13** | **Wingloading Calculator** — Webapp utility computing `lbs/sqft` based on jumper/gear weight and canopy size. | Planned |
 
 ### Longer-Term Ideas
 

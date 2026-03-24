@@ -1,51 +1,53 @@
 ---
 milestone: v12
-title: Dropzone Directory
+title: Location Directory
 status: planned
 ---
 
-# v12 — Dropzone Directory
+# v12 — Location Directory
 
-Replace the `Dropzone string` field on `Jump` (and `TunnelSession`) with a reference to a shared `Dropzone` table, enabling richer location data and cross-user disambiguation.
+Replace freeform location strings on all activity types with references to shared canonical tables: **Dropzone** (jumps), **ExitPoint** (BASE), **WindTunnel** (tunnel sessions).
 
 ## Epics
 
-- [01 — Dropzone Data Model](v12-dropzone-directory/01-dropzone-data-model.md)
-- [02 — Dropzone UI](v12-dropzone-directory/02-dropzone-ui.md)
+- [Location Data Model](v12-dropzone-directory/01-location-data-model.md) — Dropzone, ExitPoint, WindTunnel models, linkage, API, seed data
+- [Location UI](v12-dropzone-directory/02-location-ui.md) — Autocomplete, management pages, location resolver
+
+## Tickets
+
+### Location Data Model
+- [001 — Dropzone Model](v12-dropzone-directory/01-location-data-model/001-dropzone-model.md)
+- [002 — ExitPoint Model](v12-dropzone-directory/01-location-data-model/002-exit-point-model.md)
+- [003 — WindTunnel Model](v12-dropzone-directory/01-location-data-model/003-wind-tunnel-model.md)
+- [004 — Activity Location Linkage](v12-dropzone-directory/01-location-data-model/004-activity-location-linkage.md)
+- [005 — Location API](v12-dropzone-directory/01-location-data-model/005-location-api.md)
+- [006 — Seed Data](v12-dropzone-directory/01-location-data-model/006-seed-data.md)
+
+### Location UI
+- [001 — Location Autocomplete](v12-dropzone-directory/02-location-ui/001-location-autocomplete.md)
+- [002 — Location Management Pages](v12-dropzone-directory/02-location-ui/002-location-management-pages.md)
+- [003 — Activity Location Resolver](v12-dropzone-directory/02-location-ui/003-activity-location-resolver.md)
 
 ## Overview
 
-### Dropzone Table
+### Dropzone
+Globally shared table (not user-scoped). Fields: Name, Country, City, ICAO, GPS, Website, Email, Phone. Linked to `Jump` via nullable `DropzoneID` FK.
 
-A globally shared table (not scoped per user — one canonical entry per real-world dropzone):
+### ExitPoint
+Globally shared. Fields: Name, Object type (B.A.S.E.), Country, Region, GPS, Notes. Linked to `BaseJump` via nullable `ExitPointID` FK.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `ID` | `uint` (PK) | |
-| `Name` | `string` | Canonical name, e.g. "Skydive Empuriabrava" |
-| `Country` | `string` | ISO country code |
-| `City` | `string` | Nearest city |
-| `ICAO` | `string` | Optional ICAO airport code |
-| `Latitude` | `float64` | Optional GPS |
-| `Longitude` | `float64` | Optional GPS |
+### WindTunnel
+Globally shared. Fields: Name, Country, City, DiameterFt, Website, Email, Phone. Linked to `TunnelSession` via nullable `WindTunnelID` FK.
 
-### Jump linkage
+### Migration strategy
 
-`Jump.DropzoneID` nullable FK → `Dropzone`. During migration, existing `Dropzone string` values are matched against the new table (fuzzy match + user confirmation in UI). The raw string is kept as a fallback until confirmed.
-
-### Autocomplete upgrade
-
-Dropzone autocomplete queries the shared table instead of `DISTINCT(dropzone)` on the jumps table — allowing search across all known dropzones, not just visited ones.
-
-## Migration strategy
-
-1. Add `dropzones` table
-2. Add `DropzoneID *uint` nullable FK to `jumps`
-3. Import seed data (optional community-maintained list)
-4. UI: "Link" button on each jump to resolve the string → FK
-5. Eventually make `DropzoneID` required (v12+)
+1. Add `dropzones`, `exit_points`, `wind_tunnels` tables + seed community data
+2. Add nullable FK columns to `jumps`, `base_jumps`, `tunnel_sessions`
+3. Existing freeform strings kept as fallback
+4. UI "Link" action to resolve string → FK
+5. Eventually deprecate freeform strings (future milestone)
 
 ## Links
 
-- PRD §3.x (to be added)
-- Supersedes `Dropzone string` on `Jump`, `BaseJump`, `TunnelSession`
+- PRD §3.9 (Dropzone), §3.10 (ExitPoint), §3.11 (WindTunnel)
+- Supersedes `Dropzone string` on `Jump`, `Location string` on `BaseJump`, `Tunnel string` on `TunnelSession`
