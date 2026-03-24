@@ -65,27 +65,30 @@ The core entity. All jumps **must** remain ordered by `Number` at all times.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `ID` | `uint` (PK) | auto | Internal database ID |
+| `UserID` | `uint` (FK) | auto | Owner — anonymous user (ID=1) in v1, real user in v6 |
 | `Number` | `uint` | ✅ | Sequential jump number (auto-assigned, recomputed on insert/delete) |
 | `Date` | `datetime` | ✅ | Jump date and time |
 | `Dropzone` | `string` | ✅ | Name of the dropzone (autocomplete from history) |
 | `Aircraft` | `string` | – | Plane / aircraft type (autocomplete from history) |
-| `Equipment` | `string` | – | Rig / canopy description (autocomplete from history) |
 | `JumpType` | `string` | ✅ | Discipline: `FF`, `WS`, `FS`, `CRW`, `HOP`, `CF`, `AFF`, `TANDEM`, `DEMO`, `XRW`, `ANGLE`, `TRACKING`, `CP`, `WINGSUIT`, `OTHER` |
-| `Altitude` | `uint` | – | Exit altitude in feet (or meters, user pref) |
+| `Altitude` | `uint` | – | Exit altitude in feet |
 | `DeployAltitude` | `uint` | – | Deployment altitude in feet |
 | `FreefallTime` | `uint` | – | Freefall time in seconds |
 | `CanopySize` | `uint` | – | Canopy size in sq ft |
-| `Coach` | `string` | – | Coach or instructor name |
-| `Event` | `string` | – | Event name (boogie, competition, course) |
+| `Coach` | `string` | – | Coach or instructor name (autocomplete) |
+| `Event` | `string` | – | Event name — boogie, competition, course (autocomplete) |
 | `Description` | `text` | – | Freeform notes / debrief |
 | `Links` | `text (JSON)` | – | Array of URLs (video links, photos, etc.) |
-| `Landing` | `string` | – | Landing pattern / quality (`Stand-up`, `Sliding`, `PLF`, `Off-DZ`, `Water`) |
+| `Landing` | `string` | – | Landing quality: `Stand-up`, `Sliding`, `PLF`, `Off-DZ`, `Water` |
 | `NightJump` | `bool` | – | Night jump flag |
-| `OxygenJump` | `bool` | – | High-altitude with O₂ |
+| `OxygenJump` | `bool` | – | High-altitude O₂ jump |
 | `CutAway` | `bool` | – | Cutaway / malfunction flag |
-| `Buddies` | `[]JumpBuddy` | – | People on the jump (v4) |
+| `Wingsuit` | `bool` | – | Was a wingsuit flown? (Equipment system deferred to v11) |
+| `Buddies` | `[]JumpBuddy` | – | People on the jump — shared buddy pool (v4) |
 | `CreatedAt` | `datetime` | auto | |
 | `UpdatedAt` | `datetime` | auto | |
+
+> **Equipment / Gear system (v11):** Full gear tracking (canopy, harness, reserve, AAD, helmet, camera, suit, wingsuit) with a `Gear` table and `Kit` presets will be added in v11. For v1, only `Wingsuit bool` is tracked.
 
 ### 3.2 JumpBuddy (v4)
 
@@ -441,7 +444,16 @@ Even in v1 (anonymous/single-user), the data model includes a `UserID` foreign k
 
 ---
 
-## 10. Future Considerations (Beyond v8)
+## 10. Future Considerations (Beyond v10)
+
+### Planned Milestones
+
+| Version | Feature | Status |
+|---------|---------|--------|
+| **v11** | **Gear & Kit Tracking** — `Gear` table (canopy, harness, reserve, AAD, wingsuit, helmet, camera, suit, other), `Kit` groupings, jump linkage. Supersedes `Wingsuit bool` on `Jump`. | Planned |
+| **v12** | **Dropzone Directory** — Replace `Dropzone string` with a shared `Dropzone` table (name, country, city, ICAO, GPS). Enables cross-user canonical data and richer autocomplete. Migration path: add nullable `DropzoneID` FK, resolve existing strings, eventually enforce FK. | Planned |
+
+### Longer-Term Ideas
 
 - **PWA / Offline**: Service worker for offline jump logging with sync
 - **Mobile app**: Capacitor wrapper for iOS/Android
