@@ -305,7 +305,7 @@ DefaultJumpType = "FF"
 ```
 make all
   ├── make frontend      → cd webapp && npm ci && npm run build → webapp/dist/
-  └── make server        → go build -tags "..." → server/skybook (embeds webapp/dist/)
+  └── make server        → cp webapp/dist → server/server/dist, go build → server/skybook
 
 make dev
   ├── webapp: vite dev server on :5173 (proxies /api/* to :8080)

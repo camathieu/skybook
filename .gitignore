@@ -22,6 +22,10 @@ server/skybook
 webapp/node_modules/
 webapp/dist/
 
+# Embedded dist (copied by Makefile — keep .gitkeep for bare Go builds)
+server/server/dist/*
+!server/server/dist/.gitkeep
+
 # IDE
 .vscode/
 .idea/

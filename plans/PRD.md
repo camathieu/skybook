@@ -459,10 +459,16 @@ make dev
 
 - **Dark-first**: Deep navy / charcoal base with sky-gradient accents (sunset orange → teal)
 - **Aviation aesthetic**: Subtle cloud/altimeter iconography, monospace numbers for jump counts
-- **Responsive**: Mobile-first table with horizontal scroll or card view on small screens
+- **Fully responsive**: The mobile experience must be at least as good as desktop. Requirements:
+  - Touch targets ≥ 44×44 px
+  - `<meta name="viewport" content="width=device-width, initial-scale=1">` in `index.html`
+  - No hover-only interactions — all hover states must have touch/tap equivalents
+  - Tables switch to card layout on `< 640px`
+  - Modals become full-screen sheets on mobile
+  - All features must be fully usable on a 375px-wide screen (iPhone SE)
 - **Micro-animations**: Smooth row insertions, number counter animations, filter transitions
 - **Quick entry**: Jump form optimized for speed — smart defaults, autocomplete everywhere
-- **Keyboard shortcuts**: `N` for new jump, `/` for search focus, `Esc` to close modals
+- **Keyboard shortcuts**: `N` for new jump, `/` for search focus, `Esc` to close modals (desktop only, hidden on mobile)
 
 ---
 

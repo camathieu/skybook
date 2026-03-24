@@ -90,6 +90,13 @@ For every modified file, evaluate against ALL of the following checklist:
 - [ ] Are new UI elements accessible (sufficient contrast, focus states, hover states)?
 - [ ] Is the user experience consistent across views?
 
+#### Mobile Responsiveness (if webapp UI was changed)
+- [ ] Does the layout work on a 375px-wide viewport (iPhone SE)?
+- [ ] Are touch targets at least 44×44px?
+- [ ] Are there hover-only interactions with no touch equivalent?
+- [ ] Do tables/lists adapt to narrow screens (e.g. card layout)?
+- [ ] Do modals/dialogs become full-screen sheets on mobile?
+
 #### i18n / Translations (if locale files were changed — v8+)
 - [ ] Do all locale files have the same key set as `en.json`?
 - [ ] Are `{placeholder}` tokens preserved exactly in every translation?

@@ -34,6 +34,7 @@ Go through each `- [ ]` item in the ticket and verify it's actually done:
 - **Code exists**: The files and functions mentioned are implemented
 - **Tests pass**: Related tests exist and pass
 - **Behavior works**: The feature works as described (check via tests or manual steps)
+- **Mobile responsive**: If the ticket involves UI, verify the implementation works on narrow viewports (375px). Check touch targets, no hover-only states, and appropriate layout adaptations.
 
 If any criterion is NOT met, stop and tell the user what's missing. Do not proceed to close an incomplete ticket.
 

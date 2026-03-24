@@ -2,7 +2,7 @@
 epic: webapp-foundation
 milestone: v1
 title: Webapp Foundation
-status: planned
+status: done
 ---
 
 # Webapp Foundation

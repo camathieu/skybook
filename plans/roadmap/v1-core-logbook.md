@@ -20,6 +20,7 @@ The foundation of SkyBook: a fully functional skydive logbook with CRUD operatio
 - [Jump Form UI](v1-core-logbook/06-jump-form-ui.md) — Create/edit modals, autocomplete fields, delete confirmation
 - [Build & Deploy](v1-core-logbook/07-build-and-deploy.md) — Makefile, Dockerfile, AGENTS.md, ARCHITECTURE.md
 - [Testing](v1-core-logbook/08-testing.md) — Backend unit tests, frontend unit tests, E2E tests
+- [README](v1-core-logbook/09-readme.md) — Project README with quick start, features, and build instructions
 
 ## Goals
 

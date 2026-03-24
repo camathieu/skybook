@@ -48,6 +48,7 @@ Before planning implementation, critically review the ticket's acceptance criter
 - **Clear, testable acceptance criteria** — each item should be verifiable (not vague like "works well")
 - **Complete scope** — no missing edge cases, error handling, or integration points
 - **Correct technical references** — field names, API paths, model references match PRD and ARCHITECTURE.md
+- **Mobile responsiveness** — if the ticket involves UI, ensure criteria include mobile behavior (375px min-width, touch targets, no hover-only states)
 - **Realistic estimate** — does the estimate still make sense given what you now know?
 
 If the ticket is thin or missing criteria, **propose improvements**:

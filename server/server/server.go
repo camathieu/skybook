@@ -68,6 +68,9 @@ func (s *SkyBookServer) setupRouter() *mux.Router {
 	api.HandleFunc("/jumps/{id:[0-9]+}", handlers.UpdateJump(s.backend)).Methods("PUT")
 	api.HandleFunc("/jumps/{id:[0-9]+}", handlers.DeleteJump(s.backend)).Methods("DELETE")
 
+	// SPA catch-all — must be registered AFTER all API routes
+	s.serveSPA(r)
+
 	return r
 }
 

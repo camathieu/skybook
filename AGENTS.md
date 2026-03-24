@@ -119,6 +119,7 @@ make docker                 # Build Docker image
 - **Run tests before committing**: `make lint && make test`
 - **Follow the layering**: `common → metadata → middleware → handlers → cmd → server` — never import in the reverse direction
 - **Dark-first UI**: The webapp uses a dark theme by default with aviation-inspired aesthetics (see ARCHITECTURE.md §Webapp)
+- **Mobile-ready UI**: The mobile experience must be at least as good as desktop. Every UI component must work on a 375px screen (iPhone SE). Touch targets ≥ 44px, no hover-only interactions, tables→cards on small screens. Always verify responsiveness when implementing or reviewing UI changes.
 
 ## Workflows
 
