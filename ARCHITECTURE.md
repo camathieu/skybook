@@ -235,7 +235,7 @@ All errors return a consistent JSON format:
 ### Stack
 
 - **Vue 3** with Composition API and `<script setup>`
-- **Pinia** for state management (stores: `jumps`, `base`, `tunnel`, `auth`, `ui`)
+- **Pinia** for state management (stores: `jumps`, `toast`, `base`, `tunnel`, `auth`, `ui`)
 - **Vue Router** for client-side routing
 - **Tailwind CSS 4** with `@theme` customization
 

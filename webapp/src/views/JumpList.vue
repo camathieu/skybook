@@ -2,6 +2,7 @@
 import { watch, onMounted, onUnmounted, computed, ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useJumpStore } from '../stores/jumps.js'
+import { useToastStore } from '../stores/toast.js'
 import SearchBar from '../components/SearchBar.vue'
 import FilterBar from '../components/FilterBar.vue'
 import JumpTable from '../components/JumpTable.vue'
@@ -13,6 +14,7 @@ import JumpModal from '../components/JumpModal.vue'
 const route = useRoute()
 const router = useRouter()
 const store = useJumpStore()
+const toastStore = useToastStore()
 
 const ready = ref(false)
 
@@ -30,9 +32,20 @@ function openEdit(jump) {
   showModal.value = true
 }
 
-function onModalClose() {
+function onModalClose(payload) {
+  const wasEditing = editingJump.value
   showModal.value = false
   editingJump.value = null
+
+  if (payload?.success) {
+    if (payload.deleted) {
+      toastStore.addToast('Jump deleted', 'success')
+    } else if (wasEditing) {
+      toastStore.addToast('Jump updated', 'success')
+    } else {
+      toastStore.addToast('Jump created', 'success')
+    }
+  }
 }
 
 // --- Keyboard shortcut: N = new jump ---
