@@ -11,7 +11,7 @@ defineEmits(['confirm', 'cancel'])
 
 <template>
   <Teleport to="body">
-    <div class="overlay" @click.self="$emit('cancel')">
+    <div class="overlay" data-testid="confirm-modal" @click.self="$emit('cancel')">
       <div class="dialog" role="alertdialog" aria-modal="true">
         <h3 class="dialog-title">{{ title }}</h3>
         <p v-if="message" class="dialog-message">{{ message }}</p>
@@ -22,6 +22,7 @@ defineEmits(['confirm', 'cancel'])
           <button
             class="btn-confirm"
             :class="{ danger }"
+            data-testid="confirm-delete-btn"
             :disabled="loading"
             @click="$emit('confirm')"
           >

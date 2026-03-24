@@ -385,6 +385,33 @@ All backend packages have unit test coverage using Go's standard `testing` libra
 
 Tests use **in-memory SQLite** databases (`:memory:` via `metadata.NewBackend`) for isolation and speed.
 
+### Frontend Unit Tests (`make test-frontend`)
+
+Uses **Vitest** with `@vue/test-utils` and **jsdom** for fast, headless component testing.
+
+| File | What's tested |
+|------|--------------|
+| `src/stores/jumps.spec.js` | State init, CRUD actions, sorting, filtering, pagination, URL sync |
+| `src/components/AutocompleteInput.spec.js` | Rendering, v-model, debounced API calls, keyboard nav |
+| `src/components/Pagination.spec.js` | Page range display, Prev/Next disabled states, per-page switching |
+
+Vitest is scoped to `src/**/*.spec.js` (configured in `vite.config.js`) to avoid picking up Playwright E2E files.
+
+### E2E Tests (`make test-e2e`)
+
+Uses **Playwright** running against a live full stack (Go backend + Vite dev server).
+
+The `playwright.config.js` `webServer` block auto-boots:
+1. Go backend on `:8080` with `SKYBOOK_DATABASE_PATH=:memory:` for isolation
+2. Vite dev server on `:5173` (proxies `/api` → `:8080`)
+
+| File | What's tested |
+|------|-------------|
+| `e2e/jumps.spec.js` | Jump CRUD (create, edit, delete, insert-at, search/filter) |
+| `e2e/mobile.spec.js` | Responsive layout, touch targets ≥44px, modal usability at 375px |
+
+Projects: **Desktop Chrome** and **Mobile Safari (iPhone SE)**. All interactable elements have `data-testid` attributes.
+
 ---
 
 ## Multi-Tenant Readiness

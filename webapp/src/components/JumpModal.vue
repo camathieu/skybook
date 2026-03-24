@@ -150,7 +150,7 @@ function onKey(e) {
 
 <template>
   <Teleport to="body">
-    <div class="modal-overlay" @click.self="requestClose" @keydown="onKey">
+    <div class="modal-overlay" data-testid="jump-modal" @click.self="requestClose" @keydown="onKey">
       <div class="modal" role="dialog" aria-modal="true" :aria-labelledby="'modal-title'">
         <!-- Header -->
         <div class="modal-header">
@@ -290,6 +290,7 @@ function onKey(e) {
               v-if="isEdit"
               type="button"
               class="btn-danger"
+              data-testid="jump-delete-btn"
               :disabled="saving || deleting"
               @click="showDeleteConfirm = true"
             >
@@ -297,7 +298,7 @@ function onKey(e) {
             </button>
             <div class="footer-right">
               <button type="button" class="btn-secondary" :disabled="saving" @click="requestClose">Cancel</button>
-              <button type="submit" class="btn-primary" :disabled="saving">
+              <button type="submit" class="btn-primary" data-testid="jump-form-submit" :disabled="saving">
                 <span v-if="saving" class="spinner" />
                 {{ isEdit ? 'Save' : 'Create Jump' }}
               </button>

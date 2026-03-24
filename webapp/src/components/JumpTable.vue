@@ -65,6 +65,7 @@ function sortIcon(col) {
           v-for="(jump, i) in store.items"
           :key="jump.id"
           class="jump-row"
+          data-testid="jump-row"
           style="cursor:pointer"
           tabindex="0"
           @click="emit('edit', jump)"

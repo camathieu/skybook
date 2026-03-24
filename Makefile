@@ -1,4 +1,4 @@
-.PHONY: all frontend server dev clean lint test test-frontend
+.PHONY: all frontend server dev clean lint test test-frontend test-e2e
 
 # Build everything
 all: frontend server
@@ -31,7 +31,11 @@ test:
 
 # Frontend unit tests (vitest)
 test-frontend:
-	cd webapp && npm test
+	cd webapp && npm run test:unit
+
+# E2E tests (playwright)
+test-e2e:
+	cd webapp && npm run test:e2e
 
 # Remove build artifacts
 clean:

@@ -4,6 +4,12 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'],
+    include: ['src/**/*.spec.js'],
+  },
   plugins: [
     vue(),
     tailwindcss(),

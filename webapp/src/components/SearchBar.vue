@@ -54,6 +54,7 @@ onUnmounted(() => {
       v-model="localQuery"
       type="text"
       class="search-input"
+      data-testid="search-input"
       placeholder="Search jumps..."
       aria-label="Search jumps"
     />

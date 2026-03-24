@@ -86,11 +86,11 @@ function retry() {
 </script>
 
 <template>
-  <div class="jump-list">
+  <div class="jump-list" data-testid="jump-list">
     <!-- Page header with New Jump button -->
     <div class="page-header">
       <h1 class="page-title">Jumps</h1>
-      <button class="btn-new-jump" @click="openCreate" title="New Jump (N)">
+      <button class="btn-new-jump" data-testid="new-jump-btn" @click="openCreate" title="New Jump (N)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/>
         </svg>
@@ -155,7 +155,7 @@ function retry() {
   </div>
 
   <!-- Jump Modal (create / edit) -->
-  <JumpModal v-if="showModal" :jump="editingJump" @close="onModalClose" />
+  <JumpModal v-if="showModal" data-testid="jump-modal" :jump="editingJump" @close="onModalClose" />
 </template>
 
 <style scoped>
