@@ -71,6 +71,7 @@ type Jump struct {
 	NightJump    bool                        `gorm:"default:false" json:"nightJump"`
 	OxygenJump   bool                        `gorm:"default:false" json:"oxygenJump"`
 	CutAway      bool                        `gorm:"default:false" json:"cutaway"`
+	Packjob      bool                        `gorm:"default:false" json:"packjob"`
 	CreatedAt    time.Time                   `json:"createdAt"`
 	UpdatedAt    time.Time                   `json:"updatedAt"`
 }

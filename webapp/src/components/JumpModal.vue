@@ -56,6 +56,7 @@ const form = reactive({
   nightJump: props.jump?.nightJump ?? false,
   oxygenJump: props.jump?.oxygenJump ?? false,
   cutaway: props.jump?.cutaway ?? false,
+  packjob: props.jump?.packjob ?? false,
   description: props.jump?.description ?? '',
 })
 
@@ -105,6 +106,7 @@ function buildPayload() {
     nightJump: form.nightJump,
     oxygenJump: form.oxygenJump,
     cutaway: form.cutaway,
+    packjob: form.packjob,
     description: form.description.trim() || undefined,
   }
 
@@ -154,6 +156,7 @@ async function saveAndAddAnother() {
     form.nightJump = false
     form.oxygenJump = false
     form.cutaway = false
+    form.packjob = false
     form.description = ''
     isDirty.value = false
     await nextTick()
@@ -306,6 +309,10 @@ function requestClose() {
               <label class="toggle">
                 <input type="checkbox" v-model="form.cutaway" />
                 <span class="toggle-label">✂ Cutaway</span>
+              </label>
+              <label class="toggle">
+                <input type="checkbox" v-model="form.packjob" />
+                <span class="toggle-label">📦 Packjob</span>
               </label>
             </div>
           </fieldset>
