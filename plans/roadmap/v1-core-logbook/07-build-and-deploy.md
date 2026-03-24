@@ -2,7 +2,7 @@
 epic: build-and-deploy
 milestone: v1
 title: Build & Deploy
-status: in-progress
+status: done
 ---
 
 # Build & Deploy

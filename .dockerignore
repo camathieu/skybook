@@ -1,0 +1,32 @@
+# Build outputs
+/server/skybook
+/server/server/dist/
+/webapp/dist/
+
+# Node dependencies
+/webapp/node_modules/
+
+# Go dependency and cache
+/server/vendor/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Version control
+.git/
+.gitignore
+
+# IDE / Editor config
+.idea/
+.vscode/
+*.swp
+
+# Environment variables
+.env
+.env.local
+
+# Temp dirs
+tmp/
+.temp/

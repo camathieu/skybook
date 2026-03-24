@@ -335,7 +335,7 @@ DefaultJumpType = "FF"
 ```
 make all
   ├── make frontend      → cd webapp && npm ci && npm run build → webapp/dist/
-  └── make server        → cp webapp/dist → server/server/dist, go build → server/skybook
+  └── make server        → cp webapp/dist → server/server/dist, go build (CGO, -tags osusergo,netgo,sqlite_omit_load_extension, -static) → server/skybook
 
 make dev
   ├── webapp: vite dev server on :5173 (proxies /api/* to :8080)
@@ -375,7 +375,7 @@ Even in v1 (anonymous single-user mode):
 - All user-scoped tables (`jumps`, `documents`, etc.) have a `UserID` FK
 - A default anonymous user (ID=1, Provider="local") is auto-created on first startup
 - All data is attributed to this anonymous user
-- When v6 adds Google OAuth: **zero schema changes needed**, just add the auth middleware
+- When v7 adds Google OAuth: **zero schema changes needed**, just add the auth middleware
 
 ---
 

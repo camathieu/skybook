@@ -12,7 +12,7 @@ frontend:
 server:
 	rm -rf server/server/dist
 	cp -r webapp/dist server/server/dist
-	cd server && go build -o skybook .
+	cd server && CGO_ENABLED=1 go build -tags "osusergo,netgo,sqlite_omit_load_extension" -ldflags "-linkmode external -extldflags -static" -o skybook .
 
 # Dev mode: Vite on :5173 (proxies /api to :8080) + Go on :8080
 dev:
