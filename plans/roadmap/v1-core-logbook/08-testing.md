@@ -2,7 +2,7 @@
 epic: testing
 milestone: v1
 title: Testing
-status: planned
+status: in-progress
 ---
 
 # Testing
