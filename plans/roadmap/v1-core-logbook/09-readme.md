@@ -2,7 +2,7 @@
 epic: readme
 milestone: v1
 title: README
-status: planned
+status: done
 ---
 
 # README

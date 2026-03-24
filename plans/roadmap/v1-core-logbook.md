@@ -1,7 +1,7 @@
 ---
 milestone: v1
 title: Core Logbook
-status: in-progress
+status: done
 ---
 
 # v1 — Core Logbook
