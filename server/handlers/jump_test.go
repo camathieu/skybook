@@ -575,3 +575,101 @@ func TestUpdateJump_MoveDateAndNumber(t *testing.T) {
 		t.Errorf("expected date 2025-03-07, got %s", result.Date.DayString())
 	}
 }
+
+// TestUpdateJump_MoveFailsDateValidation_Rollback verifies that when a move+update
+// fails date validation at the new position, the move is fully rolled back.
+func TestUpdateJump_MoveFailsDateValidation_Rollback(t *testing.T) {
+	db := testDB(t)
+	// Create 3 jumps: #1 (Mar 1), #2 (Mar 5), #3 (Mar 10)
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 5), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 10), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+
+	// Try to move jump #1 (Mar 1) to position #3, keeping date Mar 1.
+	// At position #3: prev=#2 (Mar 5) → Mar 1 < Mar 5 → date validation FAILS.
+	// The move should be rolled back — jump should still be at position #1.
+	j, _ := db.GetJumpByNumber(1, 1)
+	body := jsonBody(t, map[string]any{
+		"date":     "2025-03-01",
+		"dropzone": "DZ",
+		"jumpType": "FF",
+		"number":   3,
+	})
+	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/v1/jumps/%d", j.ID), body)
+	req = mux.SetURLVars(req, map[string]string{"id": fmt.Sprintf("%d", j.ID)})
+	rr := httptest.NewRecorder()
+	handlers.UpdateJump(db)(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	// Verify the jump is still at position #1 (rollback worked)
+	j1, err := db.GetJumpByNumber(1, 1)
+	if err != nil {
+		t.Fatalf("jump #1 not found after rollback: %v", err)
+	}
+	if j1.ID != j.ID {
+		t.Errorf("jump #1 should still be the original jump (ID %d), got ID %d", j.ID, j1.ID)
+	}
+	if j1.Date.DayString() != "2025-03-01" {
+		t.Errorf("jump #1 date should be 2025-03-01, got %s", j1.Date.DayString())
+	}
+
+	// Verify all 3 jumps are in their original positions
+	j2, _ := db.GetJumpByNumber(1, 2)
+	if j2.Date.DayString() != "2025-03-05" {
+		t.Errorf("jump #2 should still be Mar 5, got %s", j2.Date.DayString())
+	}
+	j3, _ := db.GetJumpByNumber(1, 3)
+	if j3.Date.DayString() != "2025-03-10" {
+		t.Errorf("jump #3 should still be Mar 10, got %s", j3.Date.DayString())
+	}
+}
+
+// TestUpdateJump_MoveAndDateChange_Atomic verifies that a combined move + date
+// change succeeds atomically when the new date is valid at the new position.
+func TestUpdateJump_MoveAndDateChange_Atomic(t *testing.T) {
+	db := testDB(t)
+	// Create 3 jumps: #1 (Mar 1), #2 (Mar 5), #3 (Mar 10)
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 5), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 10), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+
+	// Move jump #3 (Mar 10) to position #1 with date Mar 1.
+	// At position #1: no prev, next=#2 (was #1, now shifted to #2, date Mar 1) → Mar 1 <= Mar 1 → VALID
+	j, _ := db.GetJumpByNumber(1, 3)
+	body := jsonBody(t, map[string]any{
+		"date":     "2025-01-01",
+		"dropzone": "DZ",
+		"jumpType": "FF",
+		"number":   1,
+	})
+	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/v1/jumps/%d", j.ID), body)
+	req = mux.SetURLVars(req, map[string]string{"id": fmt.Sprintf("%d", j.ID)})
+	rr := httptest.NewRecorder()
+	handlers.UpdateJump(db)(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	var result common.Jump
+	json.NewDecoder(rr.Body).Decode(&result)
+	if result.Number != 1 {
+		t.Errorf("expected number 1, got %d", result.Number)
+	}
+	if result.Date.DayString() != "2025-01-01" {
+		t.Errorf("expected date 2025-01-01, got %s", result.Date.DayString())
+	}
+
+	// Verify the other jumps shifted correctly
+	j2, _ := db.GetJumpByNumber(1, 2)
+	if j2.Date.DayString() != "2025-03-01" {
+		t.Errorf("jump #2 should be Mar 1 (was original #1), got %s", j2.Date.DayString())
+	}
+	j3, _ := db.GetJumpByNumber(1, 3)
+	if j3.Date.DayString() != "2025-03-05" {
+		t.Errorf("jump #3 should be Mar 5 (was original #2), got %s", j3.Date.DayString())
+	}
+}

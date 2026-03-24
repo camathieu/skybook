@@ -142,65 +142,69 @@ func (b *Backend) MoveJump(jump *common.Jump, newNumber uint) error {
 	if newNumber < 1 {
 		return fmt.Errorf("number must be >= 1")
 	}
-
 	return b.db.Transaction(func(tx *gorm.DB) error {
-		var count int64
-		tx.Model(&common.Jump{}).Where("user_id = ?", jump.UserID).Count(&count)
-		if newNumber > uint(count) {
-			return fmt.Errorf("number %d out of range (max %d)", newNumber, count)
-		}
-
-		oldNumber := jump.Number
-		userID := jump.UserID
-
-		if newNumber == oldNumber {
-			return nil
-		}
-
-		// Park at a high sentinel to free the unique slot while we shift.
-		// We use raw Exec to bypass GORM's zero-value filtering on uint fields.
-		const jumpNumberSentinel uint = 999_999_999
-		if err := tx.Exec("UPDATE jumps SET number = ? WHERE id = ?", jumpNumberSentinel, jump.ID).Error; err != nil {
-			return fmt.Errorf("park jump: %w", err)
-		}
-
-		if newNumber < oldNumber {
-			// Moving up: shift rows in [newNumber, oldNumber-1] from position X to X+1.
-			// Must process in DESC order (highest number first) to avoid unique constraint.
-			var jumpsToShift []*common.Jump
-			if err := tx.Where("user_id = ? AND number >= ? AND number < ?", userID, newNumber, oldNumber).
-				Order("number DESC").
-				Find(&jumpsToShift).Error; err != nil {
-				return err
-			}
-			for _, j := range jumpsToShift {
-				if err := tx.Model(j).Update("number", j.Number+1).Error; err != nil {
-					return err
-				}
-			}
-		} else {
-			// Moving down: shift rows in [oldNumber+1, newNumber] from position X to X-1.
-			// Must process in ASC order (lowest number first) to avoid unique constraint.
-			var jumpsToShift []*common.Jump
-			if err := tx.Where("user_id = ? AND number > ? AND number <= ?", userID, oldNumber, newNumber).
-				Order("number ASC").
-				Find(&jumpsToShift).Error; err != nil {
-				return err
-			}
-			for _, j := range jumpsToShift {
-				if err := tx.Model(j).Update("number", j.Number-1).Error; err != nil {
-					return err
-				}
-			}
-		}
-
-		// Place the jump at its final position
-		if err := tx.Exec("UPDATE jumps SET number = ? WHERE id = ?", newNumber, jump.ID).Error; err != nil {
-			return fmt.Errorf("place jump: %w", err)
-		}
-		jump.Number = newNumber
-		return nil
+		return moveJumpTx(tx, jump, newNumber)
 	})
+}
+
+// moveJumpTx performs the move logic inside an existing transaction.
+func moveJumpTx(tx *gorm.DB, jump *common.Jump, newNumber uint) error {
+	var count int64
+	tx.Model(&common.Jump{}).Where("user_id = ?", jump.UserID).Count(&count)
+	if newNumber > uint(count) {
+		return fmt.Errorf("number %d out of range (max %d)", newNumber, count)
+	}
+
+	oldNumber := jump.Number
+	userID := jump.UserID
+
+	if newNumber == oldNumber {
+		return nil
+	}
+
+	// Park at a high sentinel to free the unique slot while we shift.
+	// We use raw Exec to bypass GORM's zero-value filtering on uint fields.
+	const jumpNumberSentinel uint = 999_999_999
+	if err := tx.Exec("UPDATE jumps SET number = ? WHERE id = ?", jumpNumberSentinel, jump.ID).Error; err != nil {
+		return fmt.Errorf("park jump: %w", err)
+	}
+
+	if newNumber < oldNumber {
+		// Moving up: shift rows in [newNumber, oldNumber-1] from position X to X+1.
+		// Must process in DESC order (highest number first) to avoid unique constraint.
+		var jumpsToShift []*common.Jump
+		if err := tx.Where("user_id = ? AND number >= ? AND number < ?", userID, newNumber, oldNumber).
+			Order("number DESC").
+			Find(&jumpsToShift).Error; err != nil {
+			return err
+		}
+		for _, j := range jumpsToShift {
+			if err := tx.Model(j).Update("number", j.Number+1).Error; err != nil {
+				return err
+			}
+		}
+	} else {
+		// Moving down: shift rows in [oldNumber+1, newNumber] from position X to X-1.
+		// Must process in ASC order (lowest number first) to avoid unique constraint.
+		var jumpsToShift []*common.Jump
+		if err := tx.Where("user_id = ? AND number > ? AND number <= ?", userID, oldNumber, newNumber).
+			Order("number ASC").
+			Find(&jumpsToShift).Error; err != nil {
+			return err
+		}
+		for _, j := range jumpsToShift {
+			if err := tx.Model(j).Update("number", j.Number-1).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	// Place the jump at its final position
+	if err := tx.Exec("UPDATE jumps SET number = ? WHERE id = ?", newNumber, jump.ID).Error; err != nil {
+		return fmt.Errorf("place jump: %w", err)
+	}
+	jump.Number = newNumber
+	return nil
 }
 
 // validateDateOrder checks that date(N) ≤ date(N+1) at the given position.
@@ -265,12 +269,36 @@ func (b *Backend) GetJumpByNumber(userID, number uint) (*common.Jump, error) {
 // Validates date ordering against neighbors before saving.
 func (b *Backend) UpdateJump(jump *common.Jump) error {
 	jump.Date = jump.Date.TruncateToDay()
+	return b.db.Transaction(func(tx *gorm.DB) error {
+		return updateJumpTx(tx, jump)
+	})
+}
+
+// updateJumpTx performs the update logic inside an existing transaction.
+func updateJumpTx(tx *gorm.DB, jump *common.Jump) error {
+	jump.Date = jump.Date.TruncateToDay()
+	if err := validateDateOrder(tx, jump.UserID, jump.Date, jump.Number, jump.ID); err != nil {
+		return err
+	}
+	return tx.Omit(clause.Associations).Save(jump).Error
+}
+
+// MoveAndUpdateJump atomically repositions a jump and updates its fields.
+// Both the move and the field update (including date validation) happen in a
+// single transaction — if date validation fails, the move is rolled back.
+func (b *Backend) MoveAndUpdateJump(jump *common.Jump, newNumber uint) error {
+	if newNumber < 1 {
+		return fmt.Errorf("number must be >= 1")
+	}
 
 	return b.db.Transaction(func(tx *gorm.DB) error {
-		if err := validateDateOrder(tx, jump.UserID, jump.Date, jump.Number, jump.ID); err != nil {
+		// Step 1: Move (reposition)
+		if err := moveJumpTx(tx, jump, newNumber); err != nil {
 			return err
 		}
-		return tx.Omit(clause.Associations).Save(jump).Error
+
+		// Step 2: Update fields + validate date at new position
+		return updateJumpTx(tx, jump)
 	})
 }
 

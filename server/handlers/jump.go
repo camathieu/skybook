@@ -296,36 +296,29 @@ func UpdateJump(db *metadata.Backend) http.HandlerFunc {
 		body.Date = body.Date.TruncateToDay()
 
 		requestedNumber := body.Number
-		body.Number = existing.Number // will be MoveJump'd if needed
+		body.Number = existing.Number // will be MoveAndUpdateJump'd if needed
 
-		// Handle number change (reposition) first, before field update
+		// Handle number change + field update atomically, or just update fields
 		if requestedNumber != 0 && requestedNumber != existing.Number {
-			count, cerr := db.CountJumps(anonymousUserID)
-			if cerr != nil {
-				common.WriteError(w, "failed to count jumps", http.StatusInternalServerError)
+			if err := db.MoveAndUpdateJump(&body, requestedNumber); err != nil {
+				var dateErr *common.DateOrderError
+				if errors.As(err, &dateErr) {
+					common.WriteError(w, dateErr.Message, http.StatusBadRequest)
+				} else {
+					common.WriteError(w, "failed to update jump", http.StatusInternalServerError)
+				}
 				return
 			}
-			if requestedNumber < 1 || requestedNumber > uint(count) {
-				common.WriteError(w, "number out of range", http.StatusBadRequest)
+		} else {
+			if err := db.UpdateJump(&body); err != nil {
+				var dateErr *common.DateOrderError
+				if errors.As(err, &dateErr) {
+					common.WriteError(w, dateErr.Message, http.StatusBadRequest)
+				} else {
+					common.WriteError(w, "failed to update jump", http.StatusInternalServerError)
+				}
 				return
 			}
-			if err := db.MoveJump(existing, requestedNumber); err != nil {
-				common.WriteError(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			body.Number = requestedNumber
-		}
-
-		// Validate date ordering at the (possibly new) position.
-		// Done via UpdateJump which calls validateDateOrder internally.
-		if err := db.UpdateJump(&body); err != nil {
-			var dateErr *common.DateOrderError
-			if errors.As(err, &dateErr) {
-				common.WriteError(w, dateErr.Message, http.StatusBadRequest)
-			} else {
-				common.WriteError(w, "failed to update jump", http.StatusInternalServerError)
-			}
-			return
 		}
 
 		common.WriteJSON(w, &body, http.StatusOK)

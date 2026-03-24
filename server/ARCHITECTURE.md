@@ -89,9 +89,16 @@ Key methods:
 
 ### Date Validation — `validateDateOrder()`
 
-Called inside `CreateJump`, `InsertJumpAt`, and `UpdateJump` transactions. Enforces `date(N) ≤ date(N+1)` at the day level. Uses `skipID` to exclude the jump being moved from neighbor lookups.
+Called inside `CreateJump`, `InsertJumpAt`, `UpdateJump`, and `MoveAndUpdateJump` transactions. Enforces `date(N) ≤ date(N+1)` at the day level. Uses `skipID` to exclude the jump being moved from neighbor lookups.
 
 Returns descriptive errors like `"date 2024-03-15 is after jump #3 (2024-03-14)"`, surfaced to the API as 400.
+
+### Atomic Move+Update — `MoveAndUpdateJump()`
+
+> [!IMPORTANT]
+> When a jump changes **both** its position and its fields (e.g. number + date), both operations must occur in a **single transaction**. `MoveAndUpdateJump` wraps `moveJumpTx` + `updateJumpTx` in one `db.Transaction()`. If date validation fails after the move, the entire operation rolls back.
+>
+> Never call `MoveJump()` + `UpdateJump()` separately for the same mutation — that creates two transactions and a partial-commit risk.
 
 ### Sort & Filter Safety
 
