@@ -1,4 +1,6 @@
 <script setup>
+import BaseModal from './BaseModal.vue'
+
 defineProps({
   title: { type: String, default: 'Are you sure?' },
   message: { type: String, default: '' },
@@ -10,9 +12,8 @@ defineEmits(['confirm', 'cancel'])
 </script>
 
 <template>
-  <Teleport to="body">
-    <div class="overlay" data-testid="confirm-modal" @click.self="$emit('cancel')">
-      <div class="dialog" role="alertdialog" aria-modal="true">
+  <BaseModal :z-index="2000" data-testid="confirm-modal" @close="$emit('cancel')">
+    <div class="dialog" role="alertdialog" aria-modal="true">
         <h3 class="dialog-title">{{ title }}</h3>
         <p v-if="message" class="dialog-message">{{ message }}</p>
         <div class="dialog-actions">
@@ -20,8 +21,8 @@ defineEmits(['confirm', 'cancel'])
             Cancel
           </button>
           <button
-            class="btn-confirm"
-            :class="{ danger }"
+            class="btn-primary"
+            :class="{ 'btn-primary--danger': danger }"
             data-testid="confirm-delete-btn"
             :disabled="loading"
             @click="$emit('confirm')"
@@ -30,23 +31,11 @@ defineEmits(['confirm', 'cancel'])
             <span>{{ confirmText }}</span>
           </button>
         </div>
-      </div>
     </div>
-  </Teleport>
+  </BaseModal>
 </template>
 
 <style scoped>
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
 .dialog {
   background: var(--color-surface-800);
   border: 1px solid var(--color-surface-600);
@@ -82,44 +71,5 @@ defineEmits(['confirm', 'cancel'])
   gap: 0.75rem;
   justify-content: flex-end;
 }
-
-.btn-confirm {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: 8px;
-  border: none;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: var(--color-accent-teal);
-  color: #0f1923;
-  transition: opacity 0.15s;
-  min-height: 44px;
-}
-
-.btn-confirm.danger {
-  background: #ef4444;
-  color: #fff;
-}
-
-.btn-confirm:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  display: inline-block;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 </style>
+

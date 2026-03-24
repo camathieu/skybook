@@ -20,3 +20,4 @@ Small but high-impact usability improvements for the v1.0 jump logbook.
 - [007 — Packjob Boolean](01-ux-refinements/007-packjob-boolean.md)
 - [008 — Date-Only Field](01-ux-refinements/008-date-only.md)
 - [009 — Date Order Validation](01-ux-refinements/009-date-order-validation.md)
+- [010 — Component DRY Refactor](01-ux-refinements/010-component-dry-refactor.md)

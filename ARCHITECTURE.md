@@ -279,9 +279,10 @@ The jump create/edit workflow uses three new components:
 
 | Component | File | Description |
 |-----------|------|-------------|
-| `JumpModal.vue` | `components/` | Unified create/edit form — pass `jump` prop for edit mode, null for create. Full-screen sheet on mobile `<640px` |
+| `BaseModal.vue` | `components/` | Shared modal wrapper — Teleport, backdrop overlay, click-outside-to-close, Escape key, z-index prop. Used by JumpModal and ConfirmModal. |
+| `JumpModal.vue` | `components/` | Unified create/edit form — pass `jump` prop for edit mode, null for create. Full-screen sheet on mobile `<640px`. Uses `BaseModal`. |
 | `AutocompleteInput.vue` | `components/` | Debounced (200ms) autocomplete backed by `/api/v1/jumps/autocomplete/:field`; shows suggestions on focus and on input; keyboard navigable dropdown |
-| `ConfirmModal.vue` | `components/` | Generic danger confirmation dialog with loading state; reusable for any destructive action |
+| `ConfirmModal.vue` | `components/` | Generic danger confirmation dialog with loading state; reusable for any destructive action. Uses `BaseModal`. |
 
 **Modal trigger flow**: `JumpList` maintains `showModal: ref(bool)` and `editingJump: ref(jump|null)`. Clicking `+ New Jump` (or pressing `N`) opens create mode. Clicking a table row or card opens edit mode with the jump pre-populated. The `N` shortcut is registered globally on `window` in `onMounted` and cleaned up in `onUnmounted`.
 

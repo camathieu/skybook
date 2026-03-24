@@ -111,6 +111,14 @@ body {
     outline: 2px solid var(--color-accent-teal);
     outline-offset: 2px;
   }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-primary--danger {
+    background: var(--color-danger);
+    color: #fff;
+  }
 
   /* Secondary / ghost button */
   .btn-secondary {
@@ -198,6 +206,113 @@ body {
     border: 1px solid var(--color-surface-600);
     border-radius: 4px;
     line-height: 1;
+  }
+
+  /* ---------------------------------------------------------------
+     Form Utilities
+     --------------------------------------------------------------- */
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .label.required::after {
+    content: ' *';
+    color: var(--color-accent-orange);
+  }
+
+  .form-input {
+    background: var(--color-surface-700);
+    border: 1px solid var(--color-surface-600);
+    border-radius: 8px;
+    color: var(--color-text-primary);
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    min-height: 44px;
+    transition: border-color var(--transition-fast);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .form-input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: var(--color-accent-teal);
+    box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.15);
+  }
+
+  .form-select {
+    cursor: pointer;
+    appearance: auto;
+    color-scheme: dark;
+  }
+
+  .field-error {
+    font-size: 0.75rem;
+    color: var(--color-danger);
+  }
+
+  /* ---------------------------------------------------------------
+     Danger / Destructive Button
+     --------------------------------------------------------------- */
+
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--color-danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+    transition: background var(--transition-fast), color var(--transition-fast);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+  }
+
+  .btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ---------------------------------------------------------------
+     Spinner
+     --------------------------------------------------------------- */
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 }
 

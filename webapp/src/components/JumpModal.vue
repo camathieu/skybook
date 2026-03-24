@@ -2,6 +2,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useJumpStore } from '../stores/jumps.js'
 import AutocompleteInput from './AutocompleteInput.vue'
+import BaseModal from './BaseModal.vue'
 import ConfirmModal from './ConfirmModal.vue'
 
 const props = defineProps({
@@ -143,15 +144,11 @@ function requestClose() {
   emit('close')
 }
 
-function onKey(e) {
-  if (e.key === 'Escape') requestClose()
-}
 </script>
 
 <template>
-  <Teleport to="body">
-    <div class="modal-overlay" data-testid="jump-modal" @click.self="requestClose" @keydown="onKey">
-      <div class="modal" role="dialog" aria-modal="true" :aria-labelledby="'modal-title'">
+  <BaseModal data-testid="jump-modal" align-top @close="requestClose">
+    <div class="modal" role="dialog" aria-modal="true" :aria-labelledby="'modal-title'">
         <!-- Header -->
         <div class="modal-header">
           <h2 id="modal-title" class="modal-title">{{ modalTitle }}</h2>
@@ -305,7 +302,6 @@ function onKey(e) {
             </div>
           </div>
         </form>
-      </div>
     </div>
 
     <!-- Delete Confirmation -->
@@ -319,23 +315,10 @@ function onKey(e) {
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />
-  </Teleport>
+  </BaseModal>
 </template>
 
 <style scoped>
-/* Overlay */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 1500;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 2rem 1rem;
-  overflow-y: auto;
-}
-
 /* Modal */
 .modal {
   background: var(--color-surface-800);
@@ -420,63 +403,14 @@ function onKey(e) {
   gap: 0.75rem 1rem;
 }
 
-/* Field */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.label.required::after {
-  content: ' *';
-  color: var(--color-accent-orange);
-}
-
 .hint {
   font-weight: 400;
   color: var(--color-text-muted);
 }
 
-/* Inputs */
-.form-input {
-  background: var(--color-surface-700);
-  border: 1px solid var(--color-surface-600);
-  border-radius: 8px;
-  color: var(--color-text-primary);
-  padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
-  min-height: 44px;
-  transition: border-color 0.15s;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-accent-teal);
-  box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.15);
-}
-
-.form-select {
-  cursor: pointer;
-  appearance: auto;
-  color-scheme: dark;
-}
-
 .notes-input {
   resize: vertical;
   min-height: 80px;
-}
-
-.field-error {
-  font-size: 0.75rem;
-  color: #f87171;
 }
 
 /* Flags */
@@ -514,7 +448,7 @@ function onKey(e) {
   border-radius: 8px;
   padding: 0.625rem 0.875rem;
   font-size: 0.875rem;
-  color: #f87171;
+  color: var(--color-danger);
   margin: 0;
 }
 
@@ -534,47 +468,8 @@ function onKey(e) {
   margin-left: auto;
 }
 
-.btn-danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
-  padding: 0.625rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  min-height: 44px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.25);
-  color: #fca5a5;
-}
-
-.spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 4px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 /* Mobile: full screen sheet */
 @media (max-width: 639px) {
-  .modal-overlay {
-    align-items: flex-end;
-    padding: 0;
-  }
-
   .modal {
     border-radius: 12px 12px 0 0;
     max-height: 92dvh;
