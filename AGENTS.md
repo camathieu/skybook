@@ -98,6 +98,7 @@ make docker                 # Build Docker image
 | `server/skybook.cfg` | Server configuration (TOML) — all options with comments |
 | `server/common/config.go` | Config struct + parsing + env var override logic |
 | `server/common/jump.go` | Jump model + type enums |
+| `server/common/date.go` | DateOnly type — YYYY-MM-DD JSON, GORM serialization, date validation |
 | `server/common/user.go` | User model |
 | `server/metadata/jump.go` | Jump queries, numbering invariant logic |
 | `server/handlers/jump.go` | Jump CRUD HTTP handlers |

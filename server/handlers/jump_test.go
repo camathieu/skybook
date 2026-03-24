@@ -75,10 +75,11 @@ func TestListJumps_Empty(t *testing.T) {
 
 func TestListJumps_Pagination(t *testing.T) {
 	db := testDB(t)
+	today := common.Today()
 	for i := 0; i < 10; i++ {
 		db.CreateJump(&common.Jump{
 			UserID:   1,
-			Date:     time.Now(),
+			Date:     today,
 			Dropzone: fmt.Sprintf("DZ%d", i),
 			JumpType: common.JumpTypeFF,
 		})
@@ -134,7 +135,7 @@ func TestListJumps_InvalidSort(t *testing.T) {
 func TestCreateJump_Append(t *testing.T) {
 	db := testDB(t)
 	body := jsonBody(t, map[string]any{
-		"date":     time.Now().Format(time.RFC3339),
+		"date":     common.Today().DayString(),
 		"dropzone": "Skydive DeLand",
 		"jumpType": "FF",
 	})
@@ -168,7 +169,7 @@ func TestCreateJump_MissingDate(t *testing.T) {
 func TestCreateJump_InvalidJumpType(t *testing.T) {
 	db := testDB(t)
 	body := jsonBody(t, map[string]any{
-		"date":     time.Now().Format(time.RFC3339),
+		"date":     common.Today().DayString(),
 		"dropzone": "DZ",
 		"jumpType": "INVALID",
 	})
@@ -182,13 +183,14 @@ func TestCreateJump_InvalidJumpType(t *testing.T) {
 
 func TestCreateJump_InsertAt(t *testing.T) {
 	db := testDB(t)
+	today := common.Today()
 	// Create 3 jumps
 	for i := 0; i < 3; i++ {
-		db.CreateJump(&common.Jump{UserID: 1, Date: time.Now(), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+		db.CreateJump(&common.Jump{UserID: 1, Date: today, Dropzone: "DZ", JumpType: common.JumpTypeFF})
 	}
 	// Insert at position 2
 	body := jsonBody(t, map[string]any{
-		"date":     time.Now().Format(time.RFC3339),
+		"date":     today.DayString(),
 		"dropzone": "Inserted",
 		"jumpType": "WINGSUIT",
 		"number":   2,
@@ -218,7 +220,7 @@ func getJumpRequest(t *testing.T, db *metadata.Backend, id uint) *httptest.Respo
 
 func TestGetJump_Found(t *testing.T) {
 	db := testDB(t)
-	j := &common.Jump{UserID: 1, Date: time.Now(), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j := &common.Jump{UserID: 1, Date: common.Today(), Dropzone: "DZ", JumpType: common.JumpTypeFF}
 	db.CreateJump(j)
 
 	rr := getJumpRequest(t, db, j.ID)
@@ -239,11 +241,11 @@ func TestGetJump_NotFound(t *testing.T) {
 
 func TestUpdateJump_Fields(t *testing.T) {
 	db := testDB(t)
-	j := &common.Jump{UserID: 1, Date: time.Now(), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j := &common.Jump{UserID: 1, Date: common.Today(), Dropzone: "DZ", JumpType: common.JumpTypeFF}
 	db.CreateJump(j)
 
 	body := jsonBody(t, map[string]any{
-		"date":     time.Now().Format(time.RFC3339),
+		"date":     common.Today().DayString(),
 		"dropzone": "Updated DZ",
 		"jumpType": "WINGSUIT",
 	})
@@ -264,7 +266,7 @@ func TestUpdateJump_Fields(t *testing.T) {
 func TestUpdateJump_NotFound(t *testing.T) {
 	db := testDB(t)
 	body := jsonBody(t, map[string]any{
-		"date":     time.Now().Format(time.RFC3339),
+		"date":     common.Today().DayString(),
 		"dropzone": "DZ",
 		"jumpType": "FF",
 	})
@@ -279,13 +281,14 @@ func TestUpdateJump_NotFound(t *testing.T) {
 
 func TestUpdateJump_Move(t *testing.T) {
 	db := testDB(t)
+	today := common.Today()
 	for i := 0; i < 3; i++ {
-		db.CreateJump(&common.Jump{UserID: 1, Date: time.Now(), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+		db.CreateJump(&common.Jump{UserID: 1, Date: today, Dropzone: "DZ", JumpType: common.JumpTypeFF})
 	}
 	// Move jump #3 to position #1
 	j, _ := db.GetJumpByNumber(1, 3)
 	body := jsonBody(t, map[string]any{
-		"date":     j.Date.Format(time.RFC3339),
+		"date":     j.Date.DayString(),
 		"dropzone": j.Dropzone,
 		"jumpType": string(j.JumpType),
 		"number":   1,
@@ -307,7 +310,7 @@ func TestUpdateJump_Move(t *testing.T) {
 
 func TestDeleteJump_Success(t *testing.T) {
 	db := testDB(t)
-	j := &common.Jump{UserID: 1, Date: time.Now(), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j := &common.Jump{UserID: 1, Date: common.Today(), Dropzone: "DZ", JumpType: common.JumpTypeFF}
 	db.CreateJump(j)
 
 	req := httptest.NewRequest("DELETE", fmt.Sprintf("/api/v1/jumps/%d", j.ID), nil)
@@ -341,7 +344,7 @@ func TestDeleteJump_NotFound(t *testing.T) {
 func TestAutocomplete_Dropzone(t *testing.T) {
 	db := testDB(t)
 	// Create 3 jumps at Skydive DeLand, then 1 more recent jump at Perris
-	past := time.Now().AddDate(0, 0, -7)
+	past := common.NewDateOnly(2025, time.March, 1)
 	for i := 0; i < 3; i++ {
 		db.CreateJump(&common.Jump{
 			UserID:   1,
@@ -353,7 +356,7 @@ func TestAutocomplete_Dropzone(t *testing.T) {
 	// Perris was used more recently — should sort first
 	db.CreateJump(&common.Jump{
 		UserID:   1,
-		Date:     time.Now(),
+		Date:     common.NewDateOnly(2025, time.March, 8),
 		Dropzone: "Perris",
 		JumpType: common.JumpTypeFF,
 	})
@@ -392,11 +395,11 @@ func TestAutocomplete_InvalidField(t *testing.T) {
 
 func TestAutocomplete_AlphaSort(t *testing.T) {
 	db := testDB(t)
-	past := time.Now().AddDate(0, 0, -7)
 	// Create jumps: Perris most recently but Empuriabrava alphabetically first
-	db.CreateJump(&common.Jump{UserID: 1, Date: past, Dropzone: "Empuriabrava", JumpType: common.JumpTypeFF})
-	db.CreateJump(&common.Jump{UserID: 1, Date: time.Now(), Dropzone: "Perris", JumpType: common.JumpTypeFF})
-	db.CreateJump(&common.Jump{UserID: 1, Date: past, Dropzone: "Skydive DeLand", JumpType: common.JumpTypeFF})
+	// Dates must be in chronological order (date validation enforced)
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 1), Dropzone: "Empuriabrava", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 5), Dropzone: "Perris", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 8), Dropzone: "Skydive DeLand", JumpType: common.JumpTypeFF})
 
 	req := httptest.NewRequest("GET", "/api/v1/jumps/autocomplete/dropzone?sort=alpha", nil)
 	req = mux.SetURLVars(req, map[string]string{"field": "dropzone"})
@@ -419,5 +422,156 @@ func TestAutocomplete_AlphaSort(t *testing.T) {
 	}
 	if results[1] != "Perris" {
 		t.Errorf("expected second result 'Perris' (alpha), got %q", results[1])
+	}
+}
+
+// --- Date Validation ---
+
+func TestCreateJump_DateBeforePrevious(t *testing.T) {
+	db := testDB(t)
+	// Create a jump on March 8
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 8), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	// Attempt to append a jump on March 5 (before last) — should fail
+	body := jsonBody(t, map[string]any{
+		"date":     "2025-03-05",
+		"dropzone": "DZ",
+		"jumpType": "FF",
+	})
+	req := httptest.NewRequest("POST", "/api/v1/jumps", body)
+	rr := httptest.NewRecorder()
+	handlers.CreateJump(db)(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for date before previous, got %d: %s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestCreateJump_SameDayValid(t *testing.T) {
+	db := testDB(t)
+	today := common.NewDateOnly(2025, time.March, 8)
+	// Create 3 jumps on the same day — all should be valid
+	for i := 0; i < 3; i++ {
+		body := jsonBody(t, map[string]any{
+			"date":     today.DayString(),
+			"dropzone": "DZ",
+			"jumpType": "FF",
+		})
+		req := httptest.NewRequest("POST", "/api/v1/jumps", body)
+		rr := httptest.NewRecorder()
+		handlers.CreateJump(db)(rr, req)
+		if rr.Code != http.StatusCreated {
+			t.Fatalf("jump %d: expected 201, got %d: %s", i+1, rr.Code, rr.Body.String())
+		}
+	}
+}
+
+func TestUpdateJump_DateBreaksOrder(t *testing.T) {
+	db := testDB(t)
+	// Create 3 jumps: March 5, March 8, March 10
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 5), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 8), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 10), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+
+	// Try to update jump #2 to March 3 (before #1's March 5) — should fail
+	j, _ := db.GetJumpByNumber(1, 2)
+	body := jsonBody(t, map[string]any{
+		"date":     "2025-03-03",
+		"dropzone": "DZ",
+		"jumpType": "FF",
+	})
+	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/v1/jumps/%d", j.ID), body)
+	req = mux.SetURLVars(req, map[string]string{"id": fmt.Sprintf("%d", j.ID)})
+	rr := httptest.NewRecorder()
+	handlers.UpdateJump(db)(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for date out of order, got %d: %s", rr.Code, rr.Body.String())
+	}
+}
+
+// --- API Date Format ---
+
+func TestCreateJump_ReturnsDateOnly(t *testing.T) {
+	db := testDB(t)
+	body := jsonBody(t, map[string]any{
+		"date":     "2025-03-08",
+		"dropzone": "DZ",
+		"jumpType": "FF",
+	})
+	req := httptest.NewRequest("POST", "/api/v1/jumps", body)
+	rr := httptest.NewRecorder()
+	handlers.CreateJump(db)(rr, req)
+
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	// Verify the JSON response has date in YYYY-MM-DD format
+	var raw map[string]any
+	json.NewDecoder(rr.Body).Decode(&raw)
+	dateStr, ok := raw["date"].(string)
+	if !ok {
+		t.Fatal("expected date field in response")
+	}
+	if dateStr != "2025-03-08" {
+		t.Errorf("expected date '2025-03-08', got %q", dateStr)
+	}
+}
+
+func TestCreateJump_AcceptsRFC3339(t *testing.T) {
+	db := testDB(t)
+	body := jsonBody(t, map[string]any{
+		"date":     "2025-03-08T14:30:00Z",
+		"dropzone": "DZ",
+		"jumpType": "FF",
+	})
+	req := httptest.NewRequest("POST", "/api/v1/jumps", body)
+	rr := httptest.NewRecorder()
+	handlers.CreateJump(db)(rr, req)
+
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	// Verify the time component was stripped in the response
+	var raw map[string]any
+	json.NewDecoder(rr.Body).Decode(&raw)
+	dateStr := raw["date"].(string)
+	if dateStr != "2025-03-08" {
+		t.Errorf("expected date '2025-03-08' (time stripped), got %q", dateStr)
+	}
+}
+
+func TestUpdateJump_MoveDateAndNumber(t *testing.T) {
+	db := testDB(t)
+	// Create 3 jumps: #1 (Mar 1), #2 (Mar 5), #3 (Mar 10)
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 5), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 10), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+
+	// Update jump #1 (Mar 1) to date=Mar 7, number=2
+	// At current position (#1): Mar 7 > next (#2 Mar 5) → would be REJECTED by old code
+	// At target position (#2): prev=#1 (which is itself, skip), next=#3 (Mar 10) → Mar 7 < Mar 10 → VALID
+	j, _ := db.GetJumpByNumber(1, 1)
+	body := jsonBody(t, map[string]any{
+		"date":     "2025-03-07",
+		"dropzone": "DZ",
+		"jumpType": "FF",
+		"number":   2,
+	})
+	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/v1/jumps/%d", j.ID), body)
+	req = mux.SetURLVars(req, map[string]string{"id": fmt.Sprintf("%d", j.ID)})
+	rr := httptest.NewRecorder()
+	handlers.UpdateJump(db)(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	var result common.Jump
+	json.NewDecoder(rr.Body).Decode(&result)
+	if result.Number != 2 {
+		t.Errorf("expected number 2, got %d", result.Number)
+	}
+	if result.Date.DayString() != "2025-03-07" {
+		t.Errorf("expected date 2025-03-07, got %s", result.Date.DayString())
 	}
 }

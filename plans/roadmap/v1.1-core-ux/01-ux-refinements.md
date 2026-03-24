@@ -2,7 +2,7 @@
 epic: ux-refinements
 milestone: v1.1
 title: UX Refinements
-status: in-progress
+status: done
 ---
 
 # UX Refinements

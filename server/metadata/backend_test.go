@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/root-gg/skybook/common"
 )
@@ -27,7 +26,7 @@ func testBackend(t *testing.T) *Backend {
 func testJump(userID uint) *common.Jump {
 	return &common.Jump{
 		UserID:   userID,
-		Date:     time.Now(),
+		Date:     common.Today(),
 		Dropzone: "Test DZ",
 		JumpType: common.JumpTypeFF,
 	}

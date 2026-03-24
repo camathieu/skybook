@@ -41,6 +41,9 @@ type JumpFilters struct {
 // CreateJump appends a new jump at the end of the user's logbook.
 // The Number is automatically set to MAX(Number)+1.
 func (b *Backend) CreateJump(jump *common.Jump) error {
+	// Truncate date to midnight before storing
+	jump.Date = jump.Date.TruncateToDay()
+
 	return b.db.Transaction(func(tx *gorm.DB) error {
 		var maxNumber uint
 		if err := tx.Model(&common.Jump{}).
@@ -48,6 +51,13 @@ func (b *Backend) CreateJump(jump *common.Jump) error {
 			Select("COALESCE(MAX(number), 0)").
 			Scan(&maxNumber).Error; err != nil {
 			return fmt.Errorf("compute max number: %w", err)
+		}
+
+		// Validate date ordering: new jump must be >= previous jump's date
+		if maxNumber > 0 {
+			if err := validateDateOrder(tx, jump.UserID, jump.Date, maxNumber+1, 0); err != nil {
+				return err
+			}
 		}
 
 		jump.Number = maxNumber + 1
@@ -62,12 +72,20 @@ func (b *Backend) InsertJumpAt(jump *common.Jump, pos uint) error {
 		return fmt.Errorf("position must be >= 1, got %d", pos)
 	}
 
+	// Truncate date to midnight before storing
+	jump.Date = jump.Date.TruncateToDay()
+
 	return b.db.Transaction(func(tx *gorm.DB) error {
 		var count int64
 		tx.Model(&common.Jump{}).Where("user_id = ?", jump.UserID).Count(&count)
 
 		if pos > uint(count)+1 {
 			return fmt.Errorf("position %d out of range (max %d)", pos, count+1)
+		}
+
+		// Validate date ordering at insert position
+		if err := validateDateOrder(tx, jump.UserID, jump.Date, pos, 0); err != nil {
+			return err
 		}
 
 		// Shift existing jumps up. SQLite doesn't support UPDATE ... ORDER BY,
@@ -185,6 +203,44 @@ func (b *Backend) MoveJump(jump *common.Jump, newNumber uint) error {
 	})
 }
 
+// validateDateOrder checks that date(N) ≤ date(N+1) at the given position.
+// skipID is the ID of a jump being moved — it is excluded from neighbor lookup
+// to avoid comparing a jump against itself.
+func validateDateOrder(tx *gorm.DB, userID uint, date common.DateOnly, atNumber uint, skipID uint) error {
+	date = date.TruncateToDay()
+
+	// Check previous jump (N-1)
+	if atNumber > 1 {
+		var prev common.Jump
+		if err := tx.Where("user_id = ? AND number = ? AND id != ?", userID, atNumber-1, skipID).
+			First(&prev).Error; err == nil {
+			if date.TruncateToDay().Time.Before(prev.Date.TruncateToDay().Time) {
+				return &common.DateOrderError{Message: fmt.Sprintf("date %s is before jump #%d (%s)", date.DayString(), prev.Number, prev.Date.DayString())}
+			}
+		}
+	}
+
+	// Check next jump (N or N+1 depending on context)
+	var next common.Jump
+	if err := tx.Where("user_id = ? AND number = ? AND id != ?", userID, atNumber, skipID).
+		First(&next).Error; err == nil {
+		// There's a jump at the target position (will be shifted up)
+		if date.TruncateToDay().Time.After(next.Date.TruncateToDay().Time) {
+			return &common.DateOrderError{Message: fmt.Sprintf("date %s is after jump #%d (%s)", date.DayString(), next.Number, next.Date.DayString())}
+		}
+	} else {
+		// No jump at target — check N+1 (for move/update scenarios)
+		if err := tx.Where("user_id = ? AND number = ? AND id != ?", userID, atNumber+1, skipID).
+			First(&next).Error; err == nil {
+			if date.TruncateToDay().Time.After(next.Date.TruncateToDay().Time) {
+				return &common.DateOrderError{Message: fmt.Sprintf("date %s is after jump #%d (%s)", date.DayString(), next.Number, next.Date.DayString())}
+			}
+		}
+	}
+
+	return nil
+}
+
 // GetJump retrieves a single jump by ID for a given user.
 func (b *Backend) GetJump(userID, jumpID uint) (*common.Jump, error) {
 	jump := &common.Jump{}
@@ -206,8 +262,16 @@ func (b *Backend) GetJumpByNumber(userID, number uint) (*common.Jump, error) {
 }
 
 // UpdateJump persists changes to a jump's fields (excluding Number — use MoveJump).
+// Validates date ordering against neighbors before saving.
 func (b *Backend) UpdateJump(jump *common.Jump) error {
-	return b.db.Omit(clause.Associations).Save(jump).Error
+	jump.Date = jump.Date.TruncateToDay()
+
+	return b.db.Transaction(func(tx *gorm.DB) error {
+		if err := validateDateOrder(tx, jump.UserID, jump.Date, jump.Number, jump.ID); err != nil {
+			return err
+		}
+		return tx.Omit(clause.Associations).Save(jump).Error
+	})
 }
 
 // GetJumps retrieves a paginated, filtered list of jumps for a user.

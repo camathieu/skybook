@@ -18,8 +18,11 @@ const columns = [
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+  // Parse YYYY-MM-DD as local date to avoid timezone shift
+  // (new Date("2025-03-08") is UTC, which shifts in -UTC timezones)
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 function formatAltitude(alt) {

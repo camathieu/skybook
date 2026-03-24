@@ -29,21 +29,20 @@ const modalTitle = computed(() =>
 )
 
 // ----- Form state -----
-function toLocalDatetime(isoDate) {
-  if (!isoDate) return ''
-  // Format as YYYY-MM-DDTHH:mm for datetime-local input
-  const d = new Date(isoDate)
-  const pad = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+function toDateString(dateStr) {
+  if (!dateStr) return ''
+  // Extract YYYY-MM-DD from a date string (API returns YYYY-MM-DD, but handle ISO too)
+  return dateStr.slice(0, 10)
 }
 
-function todayDatetime() {
-  return toLocalDatetime(new Date().toISOString())
+function todayDate() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
 
 const form = reactive({
   number: props.jump?.number ?? '',
-  date: toLocalDatetime(props.jump?.date) || todayDatetime(),
+  date: toDateString(props.jump?.date) || todayDate(),
   dropzone: props.jump?.dropzone ?? '',
   jumpType: props.jump?.jumpType ?? 'FF',
   aircraft: props.jump?.aircraft ?? '',
@@ -93,7 +92,7 @@ function validate() {
 // ----- Build payload -----
 function buildPayload() {
   const payload = {
-    date: new Date(form.date).toISOString(),
+    date: form.date,
     dropzone: form.dropzone.trim(),
     jumpType: form.jumpType,
     aircraft: form.aircraft.trim() || undefined,
@@ -220,8 +219,8 @@ function requestClose() {
 
               <!-- Date -->
               <div class="field">
-                <label for="f-date" class="label required">Date & Time</label>
-                <input id="f-date" ref="dateRef" type="datetime-local" class="form-input" v-model="form.date" required />
+                <label for="f-date" class="label required">Date</label>
+                <input id="f-date" ref="dateRef" type="date" class="form-input" v-model="form.date" required />
                 <span v-if="errors.date" class="field-error">{{ errors.date }}</span>
               </div>
 

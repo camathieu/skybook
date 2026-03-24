@@ -56,7 +56,7 @@ type Jump struct {
 	ID           uint                        `gorm:"primaryKey" json:"id"`
 	UserID       uint                        `gorm:"not null;index;uniqueIndex:idx_user_number" json:"userId"`
 	Number       uint                        `gorm:"not null;uniqueIndex:idx_user_number" json:"number"`
-	Date         time.Time                   `gorm:"not null;index" json:"date"`
+	Date         DateOnly                    `gorm:"not null;index" json:"date"`
 	Dropzone     string                      `gorm:"size:255;not null;index" json:"dropzone"`
 	Aircraft     string                      `gorm:"size:255" json:"aircraft,omitempty"`
 	JumpType     JumpType                    `gorm:"size:32;not null;index" json:"jumpType"`

@@ -71,7 +71,8 @@ func runFakedb(cmd *cobra.Command, args []string) {
 	// To make it finish near present day, we calculate the required time span.
 	// Avg jumps per active day = 5.5. Avg gap between active days = 10 days.
 	totalSpanDays := int((float64(fakedbJumps) / 5.5) * 10.0)
-	currentDate := time.Now().AddDate(0, 0, -totalSpanDays)
+	startTime := time.Now().AddDate(0, 0, -totalSpanDays)
+	currentDate := common.NewDateOnly(startTime.Year(), startTime.Month(), startTime.Day())
 
 	// Arrays for realistic generation
 	homeDZ := "Skydive Local"
@@ -93,7 +94,7 @@ func runFakedb(cmd *cobra.Command, args []string) {
 	for totalGenerated < fakedbJumps {
 		// Advance by 1 to 20 days to find the next active jumping day (average 10 days)
 		daysToNextAct := r.Intn(20) + 1
-		currentDate = currentDate.AddDate(0, 0, daysToNextAct)
+		currentDate = currentDate.AddDays(daysToNextAct)
 
 		// Determine if local DZ or weekend event
 		isLocal := r.Float32() < 0.8
@@ -107,16 +108,10 @@ func runFakedb(cmd *cobra.Command, args []string) {
 		// 3 to 8 jumps per day
 		jumpsToday := r.Intn(6) + 3
 
-		// Set base time to 09:00 AM
-		currentDate = time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 9, 0, 0, 0, currentDate.Location())
-
 		for i := 0; i < jumpsToday; i++ {
 			if totalGenerated >= fakedbJumps {
 				break
 			}
-
-			// Add 1 to 2 hours between jumps
-			currentDate = currentDate.Add(time.Duration(r.Intn(60)+60) * time.Minute)
 
 			// Discipline mix
 			var jumpType common.JumpType

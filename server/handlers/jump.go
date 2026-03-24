@@ -186,6 +186,9 @@ func CreateJump(db *metadata.Backend) http.HandlerFunc {
 
 		jump.UserID = anonymousUserID
 
+		// Truncate date to day-only (backend controls time component)
+		jump.Date = jump.Date.TruncateToDay()
+
 		var err error
 		requestedNumber := jump.Number
 		jump.Number = 0 // will be assigned by Create/Insert
@@ -207,7 +210,12 @@ func CreateJump(db *metadata.Backend) http.HandlerFunc {
 		}
 
 		if err != nil {
-			common.WriteError(w, "failed to create jump", http.StatusInternalServerError)
+			var dateErr *common.DateOrderError
+			if errors.As(err, &dateErr) {
+				common.WriteError(w, dateErr.Message, http.StatusBadRequest)
+			} else {
+				common.WriteError(w, "failed to create jump", http.StatusInternalServerError)
+			}
 			return
 		}
 
@@ -284,6 +292,9 @@ func UpdateJump(db *metadata.Backend) http.HandlerFunc {
 		body.UserID = existing.UserID
 		body.CreatedAt = existing.CreatedAt
 
+		// Truncate date to day-only
+		body.Date = body.Date.TruncateToDay()
+
 		requestedNumber := body.Number
 		body.Number = existing.Number // will be MoveJump'd if needed
 
@@ -305,9 +316,15 @@ func UpdateJump(db *metadata.Backend) http.HandlerFunc {
 			body.Number = requestedNumber
 		}
 
-		// Persist field changes (number already correct at this point)
+		// Validate date ordering at the (possibly new) position.
+		// Done via UpdateJump which calls validateDateOrder internally.
 		if err := db.UpdateJump(&body); err != nil {
-			common.WriteError(w, "failed to update jump", http.StatusInternalServerError)
+			var dateErr *common.DateOrderError
+			if errors.As(err, &dateErr) {
+				common.WriteError(w, dateErr.Message, http.StatusBadRequest)
+			} else {
+				common.WriteError(w, "failed to update jump", http.StatusInternalServerError)
+			}
 			return
 		}
 

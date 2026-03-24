@@ -121,9 +121,8 @@ The core entity. All fields are defined in [PRD §3.1](plans/PRD.md).
 
 #### Date handling
 
-- **`DateOnly` type** (`common/date.go`): wraps `time.Time`, marshals as `"YYYY-MM-DD"`, accepts both `YYYY-MM-DD` and RFC3339 (time stripped).
-- **Intra-day ordering**: The seconds component of the stored time encodes a jump's position within its day (0, 1, 2…). This is managed by `reTimestampSameDay()`, called inside every mutation transaction.
-- **Date validation**: `date(N) ≤ date(N+1)` enforced at the day level on create and update. Returns 400 with descriptive error message.
+- **`DateOnly` type** (`common/date.go`): wraps `time.Time`, marshals as `"YYYY-MM-DD"`, accepts both `YYYY-MM-DD` and RFC3339 (time stripped). Stored as midnight UTC.
+- **Date validation**: `date(N) ≤ date(N+1)` enforced in the metadata layer (`validateDateOrder`) on create, insert, and update. Returns descriptive error messages. Ordering is always by `Number` — date is informational.
 
 ### BaseJump (v9) & TunnelSession (v10)
 

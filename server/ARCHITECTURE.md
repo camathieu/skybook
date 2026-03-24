@@ -36,7 +36,7 @@ Dependency direction: `common → metadata → middleware → handlers → cmd �
 Config loading: `--config` flag → `./skybook.cfg` default.
 
 > [!NOTE]
-> The `fakedb` command generates jumps with controlled randomness — sequential dates, realistic discipline distribution, and intra-day ordering. Used for E2E tests and development seeding.
+> The `fakedb` command generates jumps with controlled randomness — sequential dates (chronologically ordered, same-day allowed) and realistic discipline distribution. Used for E2E tests and development seeding.
 
 ---
 
@@ -48,27 +48,24 @@ Config loading: `--config` flag → `./skybook.cfg` default.
 |------|---------|
 | `jump.go` | `Jump` struct — all v1 fields, discipline enum, JSON links |
 | `user.go` | `User` struct — anonymous (v1), Google OAuth (v6) |
-| `date.go` | `DateOnly` type — date-only JSON serialization with hidden full-precision storage |
+| `date.go` | `DateOnly` type — date-only JSON serialization, stored as midnight UTC |
 | `config.go` | `Config` struct — TOML parsing + `SKYBOOK_` env var override |
 | `helpers.go` | `WriteJSON`, `WriteError`, `ParseUint` response helpers |
 
 ### DateOnly Type — Design Rationale
 
-`DateOnly` wraps `time.Time` but presents as `"YYYY-MM-DD"` to the API. Internally, the **seconds component** encodes a jump's position within its day.
+`DateOnly` wraps `time.Time` but presents as `"YYYY-MM-DD"` to the API. Stored as midnight UTC in SQLite — no hidden semantics.
 
 ```
 API layer:    "2024-03-15"  ←→  JSON
 Code layer:   DateOnly{time.Time}
-DB layer:     2024-03-15T00:00:02Z  ←  jump #3 on that day (0-indexed seconds)
+DB layer:     2024-03-15T00:00:00Z  ←  pure midnight UTC
 ```
 
-> [!CAUTION]
-> The time component is **never exposed** through the API — `MarshalJSON` always truncates to `YYYY-MM-DD`. But internally, comparing two `DateOnly` values with `==` will **fail** if their intra-day seconds differ, even on the same calendar day. Always use `SameDay()` for calendar-day comparison.
-
 Key methods:
-- `TruncateToDay()` → strips time, keeps date
-- `WithIntraDaySeconds(n)` → sets seconds component for ordering
-- `SameDay(other)` → true if same calendar day (ignores time)
+- `TruncateToDay()` → strips time, keeps date at midnight UTC
+- `SameDay(other)` → true if same calendar day
+- `AddDays(n)` → returns date shifted by n calendar days
 - `UnmarshalJSON` → accepts both `YYYY-MM-DD` and RFC3339 (time stripped)
 
 ---
@@ -83,8 +80,6 @@ Key methods:
 
 ### Jump Numbering Operations
 
-All mutation operations on jumps call `reTimestampSameDay()` at the end of the transaction to maintain intra-day ordering invariants.
-
 > [!CAUTION]
 > **SQLite unique constraint behavior**: SQLite checks unique constraints **immediately** on each UPDATE, not at transaction commit (deferred constraints are not supported). This means all shift operations must iterate row-by-row in the correct order:
 > - **Shifting UP** (insert/move-up): iterate in `DESC` order (highest number first) so `N+1` is free before `N` tries to claim it
@@ -92,20 +87,11 @@ All mutation operations on jumps call `reTimestampSameDay()` at the end of the t
 >
 > A single `UPDATE ... SET number = number + 1 WHERE number >= N` would violate the unique constraint on the first row it touches.
 
-### `reTimestampSameDay()` — Intra-Day Ordering
+### Date Validation — `validateDateOrder()`
 
-Called inside every Create/Insert/Delete/Move transaction:
+Called inside `CreateJump`, `InsertJumpAt`, and `UpdateJump` transactions. Enforces `date(N) ≤ date(N+1)` at the day level. Uses `skipID` to exclude the jump being moved from neighbor lookups.
 
-1. Loads all user jumps ordered by `number ASC`
-2. Groups by calendar day (`DayString()`)
-3. Assigns seconds `0, 1, 2…` to each jump within its day group
-4. Only writes to DB if the timestamp actually changed (avoids unnecessary UPDATE)
-
-This ensures same-day jumps always have unique, ordered timestamps that respect their logbook position.
-
-### Date Validation
-
-`ValidateJumpDateOrder()` (called by handlers) enforces `date(N) ≤ date(N+1)` at the **day level** — the seconds component is irrelevant for this check. Returns a 400 with a descriptive message like `"jump date (2024-03-15) would be after next jump's date (2024-03-14)"`.
+Returns descriptive errors like `"date 2024-03-15 is after jump #3 (2024-03-14)"`, surfaced to the API as 400.
 
 ### Sort & Filter Safety
 
@@ -148,12 +134,7 @@ Each handler is a closure that captures `*metadata.Backend`:
 - **No `number` field** → append (standard `CreateJump`)
 - **`number` field present** → insert at position (triggers shift via `InsertJumpAt`)
 
-### Update with Date Validation
-
-`UpdateJump` enforces monotonic date ordering:
-1. Fetch neighbor jumps (prev/next by number)
-2. Validate `prev.date ≤ new.date ≤ next.date` at the day level
-3. If the date changed, call `reTimestampSameDay` to recompute intra-day seconds
+Date validation is handled in the metadata layer — handlers are thin.
 
 ---
 
@@ -196,7 +177,7 @@ All tests use **in-memory SQLite** (`:memory:`) for isolation and speed.
 | Package | Test file(s) | What's tested |
 |---------|-------------|--------------|
 | `common` | `jump_test.go`, `config_test.go`, `user_test.go`, `date_test.go` | Model validation, config loading/env overrides, DateOnly serialization |
-| `metadata` | `backend_test.go` | Jump CRUD, numbering invariant (insert/delete/move), pagination, intra-day timestamps, multi-user isolation |
+| `metadata` | `backend_test.go` | Jump CRUD, numbering invariant (insert/delete/move), pagination, multi-user isolation |
 | `handlers` | `jump_test.go`, `misc_test.go` | All REST endpoints via `httptest`, autocomplete, health, config |
 | `middleware` | `logging_test.go`, `recovery_test.go`, `request_id_test.go` | Status capture, panic recovery → JSON, UUID context injection |
 | `server` | `server_test.go` | Router construction, route registration, server lifecycle |
