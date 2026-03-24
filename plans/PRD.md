@@ -541,10 +541,10 @@ Even in v1 (anonymous/single-user), the data model includes a `UserID` foreign k
 | **v11** | **Gear & Kit Tracking** — `Gear` table with type, model, size, DOM, purchase price, maintenance date; `Kit` shortcuts; jump linkage via `jump_gear`. | Planned |
 | **v12** | **Location Directory** — Shared directory replacing strings. Three separated models: `Dropzone` (jumps), `ExitPoint` (BASE), `WindTunnel` (tunnel sessions). Includes seed community data. | Planned |
 | **v13** | **Wingloading Calculator** — Webapp utility computing `lbs/sqft` based on jumper/gear weight and canopy size. | Planned |
+| **v14** | **PWA & Offline Access** — Service worker for offline jump logging and viewing. Syncs with backend when connection is restored. Installable as mobile app. | Planned |
 
 ### Longer-Term Ideas
 
-- **PWA / Offline**: Service worker for offline jump logging with sync
 - **Mobile app**: Capacitor wrapper for iOS/Android
 - **Altimeter integration**: Import data from FlySight, Dekunu, L&B devices
 - **License tracking**: FAA/USPA license progression visualisation
