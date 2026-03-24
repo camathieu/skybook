@@ -7,7 +7,7 @@
 
 SkyBook is a lightning-fast, self-hosted web application for skydivers to log, search, and analyze their jump history from any device.
 
-![SkyBook Webapp Demo](docs/public/mockup.png) <!-- TODO: Add actual screenshot -->
+![SkyBook Webapp](docs/public/screenshot.png)
 
 ## ✨ Features (v1)
 

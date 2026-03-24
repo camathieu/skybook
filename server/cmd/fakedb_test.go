@@ -20,6 +20,10 @@ func TestFakeDB_HappyPath(t *testing.T) {
 
 	dbPath := filepath.Join(tempDir, "test-skybook.db")
 
+	// Save and restore package-level flag globals (cobra pattern) to avoid polluting parallel tests.
+	origJumps, origOutput := fakedbJumps, fakedbOutput
+	defer func() { fakedbJumps, fakedbOutput = origJumps, origOutput }()
+
 	// Set CLI flag variables
 	fakedbJumps = 50
 	fakedbOutput = dbPath
