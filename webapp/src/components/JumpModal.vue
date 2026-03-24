@@ -14,7 +14,7 @@ const store = useJumpStore()
 
 // ----- Helpers -----
 const JUMP_TYPES = [
-  'FF', 'WS', 'FS', 'CRW', 'HOP', 'CF', 'AFF',
+  'FF', 'FS', 'CRW', 'HOP', 'CF', 'AFF',
   'TANDEM', 'DEMO', 'XRW', 'ANGLE', 'TRACKING', 'CP', 'WINGSUIT', 'OTHER',
 ]
 

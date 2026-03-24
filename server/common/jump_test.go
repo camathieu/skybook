@@ -6,7 +6,7 @@ import (
 )
 
 func TestIsValidJumpType(t *testing.T) {
-	valid := []string{"FF", "WS", "FS", "CRW", "HOP", "CF", "AFF", "TANDEM", "DEMO", "XRW", "ANGLE", "TRACKING", "CP", "WINGSUIT", "OTHER"}
+	valid := []string{"FF", "FS", "CRW", "HOP", "CF", "AFF", "TANDEM", "DEMO", "XRW", "ANGLE", "TRACKING", "CP", "WINGSUIT", "OTHER"}
 	for _, jt := range valid {
 		if !JumpType(jt).IsValid() {
 			t.Errorf("expected %q to be valid", jt)

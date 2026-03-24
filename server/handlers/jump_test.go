@@ -190,7 +190,7 @@ func TestCreateJump_InsertAt(t *testing.T) {
 	body := jsonBody(t, map[string]any{
 		"date":     time.Now().Format(time.RFC3339),
 		"dropzone": "Inserted",
-		"jumpType": "WS",
+		"jumpType": "WINGSUIT",
 		"number":   2,
 	})
 	req := httptest.NewRequest("POST", "/api/v1/jumps", body)
@@ -245,7 +245,7 @@ func TestUpdateJump_Fields(t *testing.T) {
 	body := jsonBody(t, map[string]any{
 		"date":     time.Now().Format(time.RFC3339),
 		"dropzone": "Updated DZ",
-		"jumpType": "WS",
+		"jumpType": "WINGSUIT",
 	})
 	req := httptest.NewRequest("PUT", fmt.Sprintf("/api/v1/jumps/%d", j.ID), body)
 	req = mux.SetURLVars(req, map[string]string{"id": fmt.Sprintf("%d", j.ID)})

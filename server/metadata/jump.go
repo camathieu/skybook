@@ -48,10 +48,12 @@ type AutocompleteResult struct {
 func (b *Backend) CreateJump(jump *common.Jump) error {
 	return b.db.Transaction(func(tx *gorm.DB) error {
 		var maxNumber uint
-		tx.Model(&common.Jump{}).
+		if err := tx.Model(&common.Jump{}).
 			Where("user_id = ?", jump.UserID).
 			Select("COALESCE(MAX(number), 0)").
-			Scan(&maxNumber)
+			Scan(&maxNumber).Error; err != nil {
+			return fmt.Errorf("compute max number: %w", err)
+		}
 
 		jump.Number = maxNumber + 1
 		return tx.Create(jump).Error
@@ -280,12 +282,12 @@ func (b *Backend) CountJumps(userID uint) (int64, error) {
 }
 
 // allowedAutocompleteFields maps allowed field names to their SQL column names.
+// Note: only add fields that correspond to actual columns in the jumps table.
 var allowedAutocompleteFields = map[string]string{
-	"dropzone":  "dropzone",
-	"aircraft":  "aircraft",
-	"equipment": "equipment",
-	"lo":        "lo",
-	"event":     "event",
+	"dropzone": "dropzone",
+	"aircraft": "aircraft",
+	"lo":       "lo",
+	"event":    "event",
 }
 
 // GetJumpAutocomplete returns distinct values for a given field, ranked by frequency.

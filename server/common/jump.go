@@ -11,7 +11,6 @@ type JumpType string
 
 const (
 	JumpTypeFF       JumpType = "FF"
-	JumpTypeWS       JumpType = "WS"
 	JumpTypeFS       JumpType = "FS"
 	JumpTypeCRW      JumpType = "CRW"
 	JumpTypeHOP      JumpType = "HOP"
@@ -30,7 +29,7 @@ const (
 // IsValid returns true if the jump type is recognized.
 func (jt JumpType) IsValid() bool {
 	switch jt {
-	case JumpTypeFF, JumpTypeWS, JumpTypeFS, JumpTypeCRW, JumpTypeHOP,
+	case JumpTypeFF, JumpTypeFS, JumpTypeCRW, JumpTypeHOP,
 		JumpTypeCF, JumpTypeAFF, JumpTypeTandem, JumpTypeDemo, JumpTypeXRW,
 		JumpTypeAngle, JumpTypeTracking, JumpTypeCP, JumpTypeWingsuit, JumpTypeOther:
 		return true
@@ -42,7 +41,7 @@ func (jt JumpType) IsValid() bool {
 // AllJumpTypes returns all supported jump disciplines. Useful for exposing options to the frontend.
 func AllJumpTypes() []JumpType {
 	return []JumpType{
-		JumpTypeFF, JumpTypeWS, JumpTypeFS, JumpTypeCRW, JumpTypeHOP,
+		JumpTypeFF, JumpTypeFS, JumpTypeCRW, JumpTypeHOP,
 		JumpTypeCF, JumpTypeAFF, JumpTypeTandem, JumpTypeDemo, JumpTypeXRW,
 		JumpTypeAngle, JumpTypeTracking, JumpTypeCP, JumpTypeWingsuit, JumpTypeOther,
 	}

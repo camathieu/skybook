@@ -121,7 +121,7 @@ func runFakedb(cmd *cobra.Command, args []string) {
 				altitude = uint(13000 + r.Intn(2000))
 				freefall = uint(40 + r.Intn(15))
 			} else if prob < 0.95 {
-				jumpType = common.JumpTypeWS
+				jumpType = common.JumpTypeWingsuit
 				altitude = uint(13000 + r.Intn(2000))
 				freefall = uint(60 + r.Intn(30))
 			} else if prob < 0.96 {

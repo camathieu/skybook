@@ -8,7 +8,7 @@ const showMobileFilters = ref(false)
 const dropzoneOptions = ref([])
 
 const jumpTypes = [
-  'FF', 'WS', 'FS', 'CRW', 'HOP', 'CF', 'AFF',
+  'FF', 'FS', 'CRW', 'HOP', 'CF', 'AFF',
   'TANDEM', 'DEMO', 'XRW', 'ANGLE', 'TRACKING', 'CP', 'WINGSUIT', 'OTHER'
 ]
 

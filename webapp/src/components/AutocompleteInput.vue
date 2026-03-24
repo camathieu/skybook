@@ -38,7 +38,7 @@ async function onInput(e) {
   debounceTimer = setTimeout(async () => {
     try {
       const data = await api.get(`/jumps/autocomplete/${props.field}?q=${encodeURIComponent(val)}`)
-      suggestions.value = data || []
+      suggestions.value = (data || []).map(r => r.value)
       open.value = suggestions.value.length > 0
     } catch {
       suggestions.value = []

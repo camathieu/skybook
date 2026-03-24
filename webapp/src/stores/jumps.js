@@ -133,8 +133,9 @@ export const useJumpStore = defineStore('jumps', () => {
   function initFromQuery(query) {
     if (query.page) page.value = parseInt(query.page, 10) || 1
     if (query.per_page) perPage.value = parseInt(query.per_page, 10) || 25
-    if (query.sort) sortBy.value = query.sort
-    if (query.order) order.value = query.order
+    const allowedSort = ['number', 'date', 'dropzone', 'altitude']
+    if (query.sort && allowedSort.includes(query.sort)) sortBy.value = query.sort
+    if (query.order && (query.order === 'asc' || query.order === 'desc')) order.value = query.order
     if (query.q) filters.q = query.q
     if (query.dropzone) filters.dropzone = query.dropzone
     if (query.jump_type) filters.jumpType = query.jump_type

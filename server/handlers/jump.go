@@ -163,6 +163,7 @@ func ListJumps(db *metadata.Backend) http.HandlerFunc {
 func CreateJump(db *metadata.Backend) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var jump common.Jump
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MB max
 		if err := json.NewDecoder(r.Body).Decode(&jump); err != nil {
 			common.WriteError(w, "invalid JSON body", http.StatusBadRequest)
 			return
@@ -257,6 +258,7 @@ func UpdateJump(db *metadata.Backend) http.HandlerFunc {
 		}
 
 		var body common.Jump
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MB max
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			common.WriteError(w, "invalid JSON body", http.StatusBadRequest)
 			return
