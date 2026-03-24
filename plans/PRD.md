@@ -283,7 +283,26 @@ A globally shared canonical directory of wind tunnels.
 - **Save & Add Another**: Quickly log sequential jumps without closing the modal
 - **Packjob Boolean**: Track whether a jump was packed by a packer (to remind you to pay them)
 
-### v2 — Basic Statistics
+### v2 — Jump Buddies
+
+- Add buddies to each jump
+- Autocomplete ranked by jump count together (popularity)
+- "Buddy leaderboard" — who you jump with most
+- Quick-add recent buddies
+
+### v3 — Location Directory
+
+- Shared directory replacing strings.
+- Three separated models: `Dropzone` (jumps), `ExitPoint` (BASE), `WindTunnel` (tunnel sessions).
+- Includes seed community data.
+
+### v4 — Gear & Kit Tracking
+
+- `Gear` table with type, model, size, DOM, purchase price, maintenance date
+- `Kit` shortcuts for quick gear population
+- Jump linkage via `jump_gear`
+
+### v5 — Basic Statistics
 
 - Total jumps, total freefall time
 - Jumps per discipline (pie/bar chart)
@@ -293,7 +312,7 @@ A globally shared canonical directory of wind tunnels.
 - Average / max altitude
 - Cutaway count
 
-### v3 — Document Storage
+### v6 — Document Storage
 
 - Upload and store documents (PDF, images)
 - Document categories: License, Insurance, Rig Check, Medical, AAD Service, Reserve Repack
@@ -301,29 +320,22 @@ A globally shared canonical directory of wind tunnels.
 - View / download documents inline
 - File size limits (configurable)
 
-### v4 — Jump Buddies
+### v7 — Multi-Tenant + Google Login
 
-- Add buddies to each jump
-- Autocomplete ranked by jump count together (popularity)
-- "Buddy leaderboard" — who you jump with most
-- Quick-add recent buddies
+- User accounts with Google OAuth 2.0
+- Each user has their own isolated logbook
+- Session management (JWT cookies)
+- Anonymous mode remains as default for self-hosters who don't configure auth
+- User settings (unit system, defaults)
 
-### v5 — Import / Export
+### v8 — Import / Export
 
 - **Export**: Full logbook as JSON (all jumps, documents metadata, buddies)
 - **Import**: JSON import with conflict resolution (merge / overwrite / skip)
 - Progress indicator for large imports
 - Schema versioning for forward compatibility
 
-### v6 — Multi-Tenant + Google Login
-
-- User accounts with Google OAuth 2.0
-- Each user has their own isolated logbook
-- Session management (JWT cookies, Plik-style)
-- Anonymous mode remains as default for self-hosters who don't configure auth
-- User settings (unit system, defaults)
-
-### v7 — Advanced Statistics
+### v9 — Advanced Statistics
 
 - Interactive charts (Chart.js / ApexCharts)
 - Progression curves (jumps over time, freefall time growth)
@@ -333,7 +345,7 @@ A globally shared canonical directory of wind tunnels.
 - Personal records (highest altitude, longest freefall)
 - Dropzone map (if coordinates are stored)
 
-### v8 — Internationalization
+### v10 — Internationalization
 
 - vue-i18n integration
 - Language files: English (default), French, Spanish, German, and more
@@ -341,16 +353,16 @@ A globally shared canonical directory of wind tunnels.
 - Number / date formatting per locale
 - Unit system (feet/meters, knots/km/h) tied to locale or user preference
 
-### v9 — BASE Jump Logbook
+### v11 — BASE Jump Logbook
 
 - Separate "BASE" tab in the webapp
 - Independent jump numbering sequence
 - Object-type classification (B.A.S.E.)
 - BASE-specific fields: slider config, pilot chute, delay
 - Same CRUD, search, filter, and auto-numbering patterns as skydive jumps
-- Shared buddies pool (v4) across skydive and BASE
+- Shared buddies pool (v2) across skydive and BASE
 
-### v10 — Tunnel Time Tracker
+### v12 — Tunnel Time Tracker
 
 - Separate "Tunnel" tab in the webapp
 - Track flight sessions with duration, discipline, wind speed
@@ -359,6 +371,7 @@ A globally shared canonical directory of wind tunnels.
 - Same CRUD and search patterns as jump tables
 
 ---
+
 
 ## 5. Architecture
 
@@ -551,8 +564,6 @@ Even in v1 (anonymous/single-user), the data model includes a `UserID` foreign k
 
 | Version | Feature | Status |
 |---------|---------|--------|
-| **v11** | **Gear & Kit Tracking** — `Gear` table with type, model, size, DOM, purchase price, maintenance date; `Kit` shortcuts; jump linkage via `jump_gear`. | Planned |
-| **v12** | **Location Directory** — Shared directory replacing strings. Three separated models: `Dropzone` (jumps), `ExitPoint` (BASE), `WindTunnel` (tunnel sessions). Includes seed community data. | Planned |
 | **v13** | **Wingloading Calculator** — Webapp utility computing `lbs/sqft` based on jumper/gear weight and canopy size. | Planned |
 | **v14** | **PWA & Offline Access** — Service worker for offline jump logging and viewing. Syncs with backend when connection is restored. Installable as mobile app. | Planned |
 | **v15** | **MCP Server** — Model Context Protocol integration to expose SkyBook APIs and data to AI Assistants for automated logbook querying and analysis. | Planned |
