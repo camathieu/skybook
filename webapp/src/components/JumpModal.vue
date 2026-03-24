@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { useJumpStore } from '../stores/jumps.js'
 import AutocompleteInput from './AutocompleteInput.vue'
 import BaseModal from './BaseModal.vue'
@@ -63,8 +63,19 @@ const saveError = ref('')
 const showDeleteConfirm = ref(false)
 const deleting = ref(false)
 const isDirty = ref(false)
+const dateRef = ref(null)
 
 watch(form, () => { isDirty.value = true }, { deep: true })
+
+// ----- Autofocus -----
+// On desktop, focus the Date field when opening in create mode.
+// Skipped on mobile to avoid the virtual keyboard popping up unexpectedly.
+onMounted(async () => {
+  if (!isEdit.value && window.matchMedia('(min-width: 640px)').matches) {
+    await nextTick()
+    dateRef.value?.focus()
+  }
+})
 
 // ----- Validation -----
 const errors = reactive({ date: '', dropzone: '', jumpType: '' })
@@ -175,7 +186,7 @@ function requestClose() {
               <!-- Date -->
               <div class="field">
                 <label for="f-date" class="label required">Date & Time</label>
-                <input id="f-date" type="datetime-local" class="form-input" v-model="form.date" required />
+                <input id="f-date" ref="dateRef" type="datetime-local" class="form-input" v-model="form.date" required />
                 <span v-if="errors.date" class="field-error">{{ errors.date }}</span>
               </div>
 
