@@ -95,12 +95,14 @@ Update any affected files.
 
 ### 7. Run `/commit`
 
-Execute the `/commit` workflow to stage, commit, and push the changes. The commit message should reference the ticket:
+Execute the `/commit` workflow to stage, commit, and push the changes. The commit message should reference the ticket using the `ticket:` trailer:
 
 ```
 feat(<scope>): <summary>
 
-Closes ticket <milestone>/<epic>/<ticket>
+<body>
+
+ticket: plans/roadmap/<milestone>/<epic>/<ticket>.md
 ```
 
 ## Important Notes

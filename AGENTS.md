@@ -110,6 +110,7 @@ make docker                 # Build Docker image
 - **Jump numbering invariant**: Jump numbers form a contiguous 1-based sequence per user. Insert/delete operations renumber affected jumps in a database transaction. This applies to all sequential tables (jumps, BASE jumps, tunnel sessions).
 - **Multi-tenant readiness**: All user-scoped tables have a `UserID` FK from v1. In single-user mode, an anonymous user (ID=1) is auto-created.
 - **API prefix**: All REST endpoints under `/api/v1/`
+- **Commit messages**: [Conventional Commits](https://www.conventionalcommits.org/) with a mandatory `ticket:` trailer when the work relates to a roadmap ticket. The trailer value is the ticket's relative path, e.g. `ticket: plans/roadmap/v1.1-core-ux/01-ux-refinements/003-fix-per-page.md`
 
 ## Best Practices
 

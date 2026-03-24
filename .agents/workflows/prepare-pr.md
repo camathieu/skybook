@@ -67,9 +67,13 @@ Propose a commit message following [Conventional Commits](https://www.convention
 <type>(<scope>): <short summary>
 
 <body — what and why, not how>
+
+ticket: <relative path to ticket file>
 ```
 
 Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`
+
+The `ticket:` trailer is mandatory when the work relates to a roadmap ticket.
 
 #### If the branch has multiple commits that don't make sense individually:
 

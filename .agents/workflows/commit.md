@@ -42,7 +42,11 @@ Draft a commit message following [Conventional Commits](https://www.conventional
 <type>(<scope>): <short summary>
 
 <body — what and why, not how>
+
+ticket: <relative path to ticket file>
 ```
+
+The `ticket:` trailer is **mandatory** when the work relates to a roadmap ticket. Use the ticket's path relative to the repo root, e.g. `ticket: plans/roadmap/v1.1-core-ux/01-ux-refinements/003-fix-per-page.md`.
 
 If amending an existing commit, show the original message and propose the amended version.
 
