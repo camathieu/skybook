@@ -2,7 +2,7 @@
 epic: jump-form-ui
 milestone: v1
 title: Jump Form UI
-status: in-progress
+status: done
 ---
 
 # Jump Form UI
