@@ -60,8 +60,11 @@ func runFakedb(cmd *cobra.Command, args []string) {
 
 	jumps := make([]*common.Jump, 0, fakedbJumps)
 
-	// We generate data chronologically over 10 years
-	currentDate := time.Now().AddDate(-10, 0, 0)
+	// We generate data chronologically.
+	// To make it finish near present day, we calculate the required time span.
+	// Avg jumps per active day = 5.5. Avg gap between active days = 10 days.
+	totalSpanDays := int((float64(fakedbJumps) / 5.5) * 10.0)
+	currentDate := time.Now().AddDate(0, 0, -totalSpanDays)
 
 	// Arrays for realistic generation
 	homeDZ := "Skydive Local"
@@ -81,8 +84,8 @@ func runFakedb(cmd *cobra.Command, args []string) {
 	totalGenerated := 0
 
 	for totalGenerated < fakedbJumps {
-		// Advance by 1 to 14 days to find the next active jumping day
-		daysToNextAct := r.Intn(14) + 1
+		// Advance by 1 to 20 days to find the next active jumping day (average 10 days)
+		daysToNextAct := r.Intn(20) + 1
 		currentDate = currentDate.AddDate(0, 0, daysToNextAct)
 
 		// Determine if local DZ or weekend event
