@@ -257,6 +257,22 @@ All errors return a consistent JSON format:
 | `/tunnel` | TunnelList | Tunnel sessions (v10) |
 | `/settings` | Settings | User preferences (v6+) |
 
+### Jump List Components
+
+The main logbook view follows a component hierarchy:
+
+| Component | File | Description |
+|-----------|------|-------------|
+| `JumpList.vue` | `views/` | Page-level view — URL sync, state management, layout switching |
+| `JumpTable.vue` | `components/` | Desktop table — sortable column headers, flag badges, row animations |
+| `JumpCard.vue` | `components/` | Mobile card — 2-column grid layout, touch-friendly, tap to expand |
+| `JumpSkeleton.vue` | `components/` | Loading shimmer — matches table dimensions |
+| `SearchBar.vue` | `components/` | Debounced search (300ms) with `/` keyboard shortcut |
+| `FilterBar.vue` | `components/` | Type, dropzone, date range, boolean toggles; collapses on mobile |
+| `Pagination.vue` | `components/` | Prev/Next, page indicator, per-page selector (25/50/100) |
+
+**State management**: `stores/jumps.js` (Pinia) manages items, pagination, sort, and filters. URL query params are synced bidirectionally — on mount, query → store; on change, store → URL via `router.replace`.
+
 ### API Client
 
 `webapp/src/api.js` — centralized HTTP client using `fetch()`:

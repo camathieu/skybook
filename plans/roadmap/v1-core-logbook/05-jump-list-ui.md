@@ -2,7 +2,7 @@
 epic: jump-list-ui
 milestone: v1
 title: Jump List UI
-status: planned
+status: done
 ---
 
 # Jump List UI
