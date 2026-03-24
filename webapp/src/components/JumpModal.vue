@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { useJumpStore } from '../stores/jumps.js'
+import { useToastStore } from '../stores/toast.js'
 import AutocompleteInput from './AutocompleteInput.vue'
 import BaseModal from './BaseModal.vue'
 import ConfirmModal from './ConfirmModal.vue'
@@ -12,6 +13,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const store = useJumpStore()
+const toastStore = useToastStore()
 
 // ----- Helpers -----
 const JUMP_TYPES = [
@@ -126,6 +128,36 @@ async function submit() {
       await store.createJump(buildPayload())
     }
     emit('close', { success: true })
+  } catch (err) {
+    saveError.value = err.message || 'Something went wrong'
+  } finally {
+    saving.value = false
+  }
+}
+
+// ----- Save & Add Another -----
+async function saveAndAddAnother() {
+  if (!validate()) return
+  saving.value = true
+  saveError.value = ''
+  try {
+    const created = await store.createJump(buildPayload())
+    toastStore.addToast(`Jump #${created.number} created`, 'success')
+    // Clear per-jump fields, keep session defaults (date, dropzone, aircraft, jumpType)
+    form.number = ''
+    form.altitude = ''
+    form.freefallTime = ''
+    form.canopySize = ''
+    form.lo = ''
+    form.event = ''
+    form.landing = ''
+    form.nightJump = false
+    form.oxygenJump = false
+    form.cutaway = false
+    form.description = ''
+    isDirty.value = false
+    await nextTick()
+    dateRef.value?.focus()
   } catch (err) {
     saveError.value = err.message || 'Something went wrong'
   } finally {
@@ -306,6 +338,17 @@ function requestClose() {
             </button>
             <div class="footer-right">
               <button type="button" class="btn-secondary" :disabled="saving" @click="requestClose">Cancel</button>
+              <button
+                v-if="!isEdit"
+                type="button"
+                class="btn-secondary"
+                data-testid="save-add-another"
+                :disabled="saving"
+                @click="saveAndAddAnother"
+              >
+                <span v-if="saving" class="spinner" />
+                Save & Add Another
+              </button>
               <button type="submit" class="btn-primary" data-testid="jump-form-submit" :disabled="saving">
                 <span v-if="saving" class="spinner" />
                 {{ isEdit ? 'Save' : 'Create Jump' }}
@@ -489,6 +532,20 @@ function requestClose() {
 
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-right {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .footer-right button {
+    width: 100%;
   }
 }
 </style>
