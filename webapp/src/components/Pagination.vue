@@ -57,6 +57,7 @@ const canNext = computed(() => store.page < store.totalPages)
           :key="pp"
           class="per-page-btn"
           :class="{ active: store.perPage === pp }"
+          :data-testid="`per-page-${pp}`"
           @click="store.setPerPage(pp)"
         >
           {{ pp }}

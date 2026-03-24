@@ -3,7 +3,7 @@ ticket: "003"
 epic: ux-refinements
 milestone: v1.1
 title: Fix Per Page
-status: planned
+status: done
 priority: high
 estimate: XS
 ---
