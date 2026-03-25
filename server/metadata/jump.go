@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/root-gg/skybook/common"
 )
@@ -20,6 +19,16 @@ var allowedSortFields = map[string]bool{
 	"date":     true,
 	"dropzone": true,
 	"altitude": true,
+}
+
+// updatableColumns is the whitelist of user-mutable columns for UpdateJump.
+// Immutable fields (id, user_id, number, created_at) are never in this list.
+var updatableColumns = []string{
+	"date", "dropzone", "aircraft", "jump_type",
+	"altitude", "freefall_time", "canopy_size",
+	"lo", "event", "description", "links", "landing",
+	"night_jump", "oxygen_jump", "cut_away", "packjob",
+	"updated_at",
 }
 
 // JumpFilters holds optional filter parameters for listing jumps.
@@ -279,7 +288,7 @@ func updateJumpTx(tx *gorm.DB, jump *common.Jump) error {
 	if err := validateDateOrder(tx, jump.UserID, jump.Date, jump.Number, jump.ID); err != nil {
 		return err
 	}
-	return tx.Omit(clause.Associations).Save(jump).Error
+	return tx.Model(jump).Select(updatableColumns).Updates(jump).Error
 }
 
 // MoveAndUpdateJump atomically repositions a jump and updates its fields.

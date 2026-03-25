@@ -2,7 +2,7 @@
 epic: data-integrity
 milestone: v1.2
 title: Data Integrity
-status: in-progress
+status: done
 ---
 
 # Data Integrity

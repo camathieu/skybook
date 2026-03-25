@@ -143,6 +143,16 @@ Each handler is a closure that captures `*metadata.Backend`:
 
 Date validation is handled in the metadata layer — handlers are thin.
 
+### PUT Semantics — `UpdateJump`
+
+`PUT /api/v1/jumps/:id` is **full-replacement**: the client must send all user-mutable fields. Missing booleans default to `false` (the Go zero value after JSON decoding) and **will** overwrite existing `true` values — this is intentional.
+
+To protect immutable fields, `updateJumpTx` uses an explicit column whitelist (`updatableColumns` in `metadata/jump.go`) via `tx.Model(jump).Select(updatableColumns).Updates(jump)`. The following fields are **never** overwritten by an update:
+
+- `id`, `user_id`, `number`, `created_at`
+
+PATCH with a field mask is not supported in v1.x. The frontend is expected to always send the full jump body.
+
 ---
 
 ## `server/` — HTTP Server & SPA Embedding

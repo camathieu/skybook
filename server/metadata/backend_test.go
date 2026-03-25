@@ -375,3 +375,68 @@ func assertContiguous(t *testing.T, b *Backend, userID uint, expectedCount int64
 		}
 	}
 }
+
+// TestUpdateJump_CreatedAtUnchanged verifies that UpdateJump never overwrites created_at.
+func TestUpdateJump_CreatedAtUnchanged(t *testing.T) {
+	b := testBackend(t)
+
+	j := testJump(1)
+	if err := b.CreateJump(j); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	createdAt := j.CreatedAt
+
+	// Simulate a client sending a different created_at — should be ignored.
+	j.Dropzone = "Updated DZ"
+	if err := b.UpdateJump(j); err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	// Re-fetch from DB to confirm.
+	fetched, err := b.GetJump(1, j.ID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if !fetched.CreatedAt.Equal(createdAt) {
+		t.Errorf("created_at changed: was %v, now %v", createdAt, fetched.CreatedAt)
+	}
+	if fetched.Dropzone != "Updated DZ" {
+		t.Errorf("dropzone not updated: got %q", fetched.Dropzone)
+	}
+}
+
+// TestUpdateJump_BooleanOverwrite verifies PUT semantics: a false boolean in the
+// body overwrites an existing true — the frontend is expected to send all fields.
+func TestUpdateJump_BooleanOverwrite(t *testing.T) {
+	b := testBackend(t)
+
+	// Create with NightJump=true.
+	j := &common.Jump{
+		UserID:    1,
+		Date:      common.Today(),
+		Dropzone:  "DZ",
+		JumpType:  common.JumpTypeFF,
+		NightJump: true,
+	}
+	if err := b.CreateJump(j); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	// Update with NightJump=false (full-body PUT — frontend explicitly cleared it).
+	j.NightJump = false
+	j.Dropzone = "DZ Updated"
+	if err := b.UpdateJump(j); err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	fetched, err := b.GetJump(1, j.ID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if fetched.NightJump {
+		t.Error("NightJump should be false after PUT with nightJump=false")
+	}
+	if fetched.Dropzone != "DZ Updated" {
+		t.Errorf("dropzone not updated: got %q", fetched.Dropzone)
+	}
+}
