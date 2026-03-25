@@ -72,20 +72,22 @@ func ListJumps(db *metadata.Backend) http.HandlerFunc {
 		}
 
 		if df := q.Get("date_from"); df != "" {
-			t, err := time.Parse("2006-01-02", df)
+			t, err := time.Parse(common.DateLayout, df)
 			if err != nil {
 				common.WriteError(w, "invalid date_from format (use YYYY-MM-DD)", http.StatusBadRequest)
 				return
 			}
-			filters.DateFrom = &t
+			d := common.NewDateOnly(t.Year(), t.Month(), t.Day())
+			filters.DateFrom = &d
 		}
 		if dt := q.Get("date_to"); dt != "" {
-			t, err := time.Parse("2006-01-02", dt)
+			t, err := time.Parse(common.DateLayout, dt)
 			if err != nil {
 				common.WriteError(w, "invalid date_to format (use YYYY-MM-DD)", http.StatusBadRequest)
 				return
 			}
-			filters.DateTo = &t
+			d := common.NewDateOnly(t.Year(), t.Month(), t.Day())
+			filters.DateTo = &d
 		}
 		if v := q.Get("altitude_min"); v != "" {
 			n, err := strconv.ParseUint(v, 10, 64)

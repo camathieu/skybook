@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -26,8 +25,8 @@ var allowedSortFields = map[string]bool{
 // JumpFilters holds optional filter parameters for listing jumps.
 type JumpFilters struct {
 	Q           string
-	DateFrom    *time.Time
-	DateTo      *time.Time
+	DateFrom    *common.DateOnly
+	DateTo      *common.DateOnly
 	Dropzone    string
 	Aircraft    string
 	JumpType    string
@@ -314,10 +313,10 @@ func (b *Backend) GetJumps(userID uint, offset, limit int, sortBy, order string,
 		q = q.Where("description LIKE ? OR dropzone LIKE ? OR event LIKE ? OR lo LIKE ?", like, like, like, like)
 	}
 	if filters.DateFrom != nil {
-		q = q.Where("date >= ?", filters.DateFrom)
+		q = q.Where("date >= ?", *filters.DateFrom)
 	}
 	if filters.DateTo != nil {
-		q = q.Where("date <= ?", filters.DateTo)
+		q = q.Where("date <= ?", *filters.DateTo)
 	}
 	if filters.Dropzone != "" {
 		q = q.Where("dropzone = ?", filters.Dropzone)

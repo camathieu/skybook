@@ -130,6 +130,69 @@ func TestListJumps_InvalidSort(t *testing.T) {
 	}
 }
 
+func TestListJumps_DateFromFilter(t *testing.T) {
+	db := testDB(t)
+	// Create 3 jumps on different dates
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 5), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 10), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+
+	// Filter: only jumps on or after March 5
+	req := httptest.NewRequest("GET", "/api/v1/jumps?date_from=2025-03-05&sort=number&order=asc", nil)
+	rr := httptest.NewRecorder()
+	handlers.ListJumps(db)(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", rr.Code, rr.Body.String())
+	}
+	type resp struct {
+		Items []*common.Jump `json:"items"`
+		Total int64          `json:"total"`
+	}
+	got := mustDecode[resp](t, rr.Body)
+	if got.Total != 2 {
+		t.Errorf("expected 2 jumps (Mar 5 and Mar 10), got %d", got.Total)
+	}
+	for _, j := range got.Items {
+		if j.Date.Time.Before(common.NewDateOnly(2025, time.March, 5).Time) {
+			t.Errorf("jump %d has date %s which is before date_from 2025-03-05", j.Number, j.Date.DayString())
+		}
+	}
+}
+
+func TestListJumps_DateToFilter(t *testing.T) {
+	db := testDB(t)
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 5), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+	db.CreateJump(&common.Jump{UserID: 1, Date: common.NewDateOnly(2025, time.March, 10), Dropzone: "DZ", JumpType: common.JumpTypeFF})
+
+	// Filter: only jumps on or before March 5
+	req := httptest.NewRequest("GET", "/api/v1/jumps?date_to=2025-03-05", nil)
+	rr := httptest.NewRecorder()
+	handlers.ListJumps(db)(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+	type resp struct {
+		Total int64 `json:"total"`
+	}
+	got := mustDecode[resp](t, rr.Body)
+	if got.Total != 2 {
+		t.Errorf("expected 2 jumps (Mar 1 and Mar 5), got %d", got.Total)
+	}
+}
+
+func TestListJumps_InvalidDateFrom(t *testing.T) {
+	db := testDB(t)
+	req := httptest.NewRequest("GET", "/api/v1/jumps?date_from=not-a-date", nil)
+	rr := httptest.NewRecorder()
+	handlers.ListJumps(db)(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for invalid date_from, got %d", rr.Code)
+	}
+}
+
 // --- CreateJump ---
 
 func TestCreateJump_Append(t *testing.T) {
