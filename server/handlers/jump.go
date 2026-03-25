@@ -6,7 +6,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -172,16 +171,8 @@ func CreateJump(db *metadata.Backend) http.HandlerFunc {
 		}
 
 		// Validate required fields
-		if jump.Date.IsZero() {
-			common.WriteError(w, "date is required", http.StatusBadRequest)
-			return
-		}
-		if strings.TrimSpace(jump.Dropzone) == "" {
-			common.WriteError(w, "dropzone is required", http.StatusBadRequest)
-			return
-		}
-		if !jump.JumpType.IsValid() {
-			common.WriteError(w, "invalid jump_type", http.StatusBadRequest)
+		if err := jump.Validate(); err != nil {
+			common.WriteError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -275,16 +266,8 @@ func UpdateJump(db *metadata.Backend) http.HandlerFunc {
 		}
 
 		// Validate required fields
-		if body.Date.IsZero() {
-			common.WriteError(w, "date is required", http.StatusBadRequest)
-			return
-		}
-		if strings.TrimSpace(body.Dropzone) == "" {
-			common.WriteError(w, "dropzone is required", http.StatusBadRequest)
-			return
-		}
-		if !body.JumpType.IsValid() {
-			common.WriteError(w, "invalid jump_type", http.StatusBadRequest)
+		if err := body.Validate(); err != nil {
+			common.WriteError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 

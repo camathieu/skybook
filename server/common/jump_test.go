@@ -94,3 +94,59 @@ func searchSubstring(s, substr string) bool {
 	}
 	return false
 }
+
+func TestJump_Validate(t *testing.T) {
+	validJump := func() *Jump {
+		return &Jump{
+			Date:     Today(),
+			Dropzone: "Skydive City",
+			JumpType: JumpTypeFF,
+		}
+	}
+
+	tests := []struct {
+		name    string
+		mutate  func(j *Jump)
+		wantErr string
+	}{
+		{
+			name:    "valid jump",
+			mutate:  func(j *Jump) {},
+			wantErr: "",
+		},
+		{
+			name:    "missing date",
+			mutate:  func(j *Jump) { j.Date = DateOnly{} },
+			wantErr: "date is required",
+		},
+		{
+			name:    "empty dropzone",
+			mutate:  func(j *Jump) { j.Dropzone = "  " },
+			wantErr: "dropzone is required",
+		},
+		{
+			name:    "invalid jump type",
+			mutate:  func(j *Jump) { j.JumpType = "BELLY" },
+			wantErr: "invalid jump_type",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			j := validJump()
+			tc.mutate(j)
+			err := j.Validate()
+			if tc.wantErr == "" {
+				if err != nil {
+					t.Errorf("expected no error, got %v", err)
+				}
+			} else {
+				if err == nil {
+					t.Errorf("expected error %q, got nil", tc.wantErr)
+				} else if err.Error() != tc.wantErr {
+					t.Errorf("expected error %q, got %q", tc.wantErr, err.Error())
+				}
+			}
+		})
+	}
+}

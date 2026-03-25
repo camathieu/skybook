@@ -1,6 +1,8 @@
 package common
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/datatypes"
@@ -74,4 +76,19 @@ type Jump struct {
 	Packjob      bool                        `gorm:"default:false" json:"packjob"`
 	CreatedAt    time.Time                   `json:"createdAt"`
 	UpdatedAt    time.Time                   `json:"updatedAt"`
+}
+
+// Validate checks that the required Jump fields are present and valid.
+// Called by CreateJump and UpdateJump handlers before persisting.
+func (j *Jump) Validate() error {
+	if j.Date.IsZero() {
+		return fmt.Errorf("date is required")
+	}
+	if strings.TrimSpace(j.Dropzone) == "" {
+		return fmt.Errorf("dropzone is required")
+	}
+	if !j.JumpType.IsValid() {
+		return fmt.Errorf("invalid jump_type")
+	}
+	return nil
 }
