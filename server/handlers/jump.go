@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"math"
 	"net/http"
 	"strconv"
@@ -289,6 +290,7 @@ func UpdateJump(db *metadata.Backend) http.HandlerFunc {
 				if errors.As(err, &dateErr) {
 					common.WriteError(w, dateErr.Message, http.StatusBadRequest)
 				} else {
+					slog.Error("MoveAndUpdateJump failed", "id", id, "error", err)
 					common.WriteError(w, "failed to update jump", http.StatusInternalServerError)
 				}
 				return
@@ -299,6 +301,7 @@ func UpdateJump(db *metadata.Backend) http.HandlerFunc {
 				if errors.As(err, &dateErr) {
 					common.WriteError(w, dateErr.Message, http.StatusBadRequest)
 				} else {
+					slog.Error("UpdateJump failed", "id", id, "error", err)
 					common.WriteError(w, "failed to update jump", http.StatusInternalServerError)
 				}
 				return

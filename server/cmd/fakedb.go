@@ -120,35 +120,35 @@ func runFakedb(cmd *cobra.Command, args []string) {
 			prob := r.Float32()
 			if prob < 0.55 {
 				jumpType = common.JumpTypeFF
-				altitude = uint(13000 + r.Intn(2000))
+				altitude = dropAltitude(r)
 				freefall = uint(40 + r.Intn(15))
 			} else if prob < 0.70 {
 				jumpType = common.JumpTypeWingsuit
-				altitude = uint(13000 + r.Intn(2000))
+				altitude = dropAltitude(r)
 				freefall = uint(60 + r.Intn(30))
 			} else if prob < 0.78 {
 				jumpType = common.JumpTypeFS
-				altitude = uint(12000 + r.Intn(3000))
+				altitude = dropAltitude(r)
 				freefall = uint(45 + r.Intn(15))
 			} else if prob < 0.84 {
 				jumpType = common.JumpTypeTracking
-				altitude = uint(12000 + r.Intn(2000))
+				altitude = dropAltitude(r)
 				freefall = uint(50 + r.Intn(20))
 			} else if prob < 0.89 {
 				jumpType = common.JumpTypeAFFI
-				altitude = uint(13000 + r.Intn(2000))
+				altitude = dropAltitude(r)
 				freefall = uint(55 + r.Intn(20))
 			} else if prob < 0.93 {
 				jumpType = common.JumpTypeCamera
-				altitude = uint(13000 + r.Intn(2000))
+				altitude = dropAltitude(r)
 				freefall = uint(50 + r.Intn(20))
 			} else if prob < 0.96 {
 				jumpType = common.JumpTypeCRW
-				altitude = uint(8000 + r.Intn(4000))
+				altitude = dropAltitude(r)
 				freefall = uint(120 + r.Intn(60))
 			} else {
 				jumpType = common.JumpTypeHOP
-				altitude = uint(3000 + r.Intn(2500))
+				altitude = 5000
 				freefall = uint(r.Intn(6))
 			}
 
@@ -224,4 +224,15 @@ func runFakedb(cmd *cobra.Command, args []string) {
 	fmt.Printf("\nSuccess! Generated %d jumps dynamically into '%s'.\n", fakedbJumps, fakedbOutput)
 	fmt.Printf("Run the server against this database with:\n\n")
 	fmt.Printf("  SKYBOOK_DATABASE_PATH=%s ./server/skybook serve\n\n", fakedbOutput)
+}
+
+// dropAltitude returns a realistic drop altitude:
+// 90 % of the time → 13 000 ft (most common at a single-otter DZ),
+// 10 % of the time → one of 10 000 / 12 000 / 15 000 ft (special loads, big-ways, etc.).
+func dropAltitude(r *rand.Rand) uint {
+	if r.Float32() < 0.90 {
+		return 13000
+	}
+	alts := [3]uint{10000, 12000, 15000}
+	return alts[r.Intn(3)]
 }
