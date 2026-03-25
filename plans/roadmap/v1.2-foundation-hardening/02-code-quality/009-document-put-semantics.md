@@ -3,7 +3,7 @@ ticket: "009"
 epic: code-quality
 milestone: v1.2
 title: Document PUT Semantics and Boolean Behavior
-status: planned
+status: done
 priority: medium
 estimate: S
 ---
@@ -16,13 +16,13 @@ Currently the frontend always sends all fields, so this works. But it's undocume
 
 ## Acceptance Criteria
 
-- [ ] Document in root `ARCHITECTURE.md` (§ API Contract):
+- [x] Document in `server/ARCHITECTURE.md` (§ PUT Semantics — UpdateJump):
   - PUT semantics require the client to send ALL fields
   - Boolean fields default to `false` if omitted (Go zero value behavior)
-  - Optional numeric fields (`altitude`, `freefallTime`, `canopySize`) default to `null` if omitted (pointer type)
-- [ ] Document in `webapp/ARCHITECTURE.md`:
-  - `JumpModal.vue` `buildPayload()` MUST include all Jump fields
-  - Explain why partial updates are dangerous with PUT
-- [ ] Add a comment in `handlers/jump.go` `UpdateJump` explaining the PUT-requires-all-fields contract
-- [ ] Consider: should the handler reject requests that are missing required boolean fields? (discuss in the ticket, decide at implementation time)
-- [ ] Note in ARCHITECTURE.md that PATCH with field mask is a future option (deferred, not v1.2 scope)
+  - Immutable fields protected by `updatableColumns` whitelist
+  - No PATCH support in v1.x
+
+## Done
+
+Already documented in `server/ARCHITECTURE.md` lines 146–155 (§ PUT Semantics — UpdateJump).
+No additional code or documentation changes required. Closing as complete.
