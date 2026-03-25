@@ -21,6 +21,12 @@ var allowedSortFields = map[string]bool{
 	"altitude": true,
 }
 
+// IsAllowedSortField reports whether field is a valid sort column.
+// Handlers should use this instead of maintaining their own whitelist.
+func IsAllowedSortField(field string) bool {
+	return allowedSortFields[field]
+}
+
 // updatableColumns is the whitelist of user-mutable columns for UpdateJump.
 // Immutable fields (id, user_id, number, created_at) are never in this list.
 var updatableColumns = []string{

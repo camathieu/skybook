@@ -52,8 +52,7 @@ func ListJumps(db *metadata.Backend) http.HandlerFunc {
 		order := q.Get("order")
 
 		// Whitelist allowed sort columns to prevent SQL injection
-		allowedSort := map[string]bool{"number": true, "date": true, "dropzone": true, "altitude": true}
-		if sortBy != "" && !allowedSort[sortBy] {
+		if sortBy != "" && !metadata.IsAllowedSortField(sortBy) {
 			common.WriteError(w, "invalid sort field", http.StatusBadRequest)
 			return
 		}
