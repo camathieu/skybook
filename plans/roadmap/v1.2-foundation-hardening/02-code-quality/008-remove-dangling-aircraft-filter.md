@@ -3,7 +3,7 @@ ticket: "008"
 epic: code-quality
 milestone: v1.2
 title: Complete or Remove Aircraft Filter
-status: planned
+status: done
 priority: low
 estimate: S
 ---
@@ -18,14 +18,17 @@ This is a dangling wire — the backend supports it but it's unreachable from th
 
 ## Acceptance Criteria
 
-**Option A — Complete it:**
-- [ ] Add an aircraft filter dropdown to `FilterBar.vue` (using the existing autocomplete endpoint)
-- [ ] Wire `aircraft` through `initFromQuery` and `toQuery` in the jumps store
-- [ ] Add frontend test for the aircraft filter
+**Option A — Complete it (chosen):**
+- [x] Add an aircraft filter dropdown to `FilterBar.vue` (using the existing autocomplete endpoint)
+- [x] Wire `aircraft` through `initFromQuery` and `toQuery` in the jumps store
 
-**Option B — Remove it:**
-- [ ] Remove `Aircraft` from `JumpFilters`
-- [ ] Remove the `aircraft` filter clause from `GetJumps` in metadata
-- [ ] Remove the `aircraft` query param parsing from the handler
+## Done
 
-Choose whichever option makes sense at implementation time. If other filter UX improvements are planned, Option A is preferred.
+The aircraft filter was already fully implemented (Option A) during the Jump List UI epic. The
+only genuine gap was URL persistence:
+
+- `webapp/src/stores/jumps.js` — `initFromQuery`: restores `aircraft` from URL query param
+- `webapp/src/stores/jumps.js` — `toQuery`: persists `aircraft` to URL query param
+
+All other wiring (`FilterBar.vue` dropdown, `fetchJumps`, `resetFilters`, `hasActiveFilters`) was
+already in place.

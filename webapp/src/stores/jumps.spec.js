@@ -135,6 +135,7 @@ describe('useJumpStore', () => {
       order: 'asc',
       q: 'empuriabrava',
       jump_type: 'WS',
+      aircraft: 'Caravan',
     })
     expect(store.page).toBe(2)
     expect(store.perPage).toBe(50)
@@ -142,6 +143,7 @@ describe('useJumpStore', () => {
     expect(store.order).toBe('asc')
     expect(store.filters.q).toBe('empuriabrava')
     expect(store.filters.jumpType).toBe('WS')
+    expect(store.filters.aircraft).toBe('Caravan')
   })
 
   it('toQuery omits default values', () => {
@@ -158,9 +160,11 @@ describe('useJumpStore', () => {
     const store = useJumpStore()
     store.page = 2
     store.filters.q = 'tunnel'
+    store.filters.aircraft = 'Caravan'
     const q = store.toQuery()
     expect(q.page).toBe('2')
     expect(q.q).toBe('tunnel')
+    expect(q.aircraft).toBe('Caravan')
   })
 
   it('createJump calls api.post then refreshes list', async () => {

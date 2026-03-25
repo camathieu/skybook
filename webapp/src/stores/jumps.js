@@ -142,6 +142,7 @@ export const useJumpStore = defineStore('jumps', () => {
     if (query.order && (query.order === 'asc' || query.order === 'desc')) order.value = query.order
     if (query.q) filters.q = query.q
     if (query.dropzone) filters.dropzone = query.dropzone
+    if (query.aircraft) filters.aircraft = query.aircraft
     if (query.jump_type) filters.jumpType = query.jump_type
     if (query.date_from) filters.dateFrom = query.date_from
     if (query.date_to) filters.dateTo = query.date_to
@@ -160,6 +161,7 @@ export const useJumpStore = defineStore('jumps', () => {
     if (order.value !== 'desc') q.order = order.value
     if (filters.q) q.q = filters.q
     if (filters.dropzone) q.dropzone = filters.dropzone
+    if (filters.aircraft) q.aircraft = filters.aircraft
     if (filters.jumpType) q.jump_type = filters.jumpType
     if (filters.dateFrom) q.date_from = filters.dateFrom
     if (filters.dateTo) q.date_to = filters.dateTo

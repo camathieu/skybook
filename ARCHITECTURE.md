@@ -218,6 +218,7 @@ All endpoints prefixed with `/api/v1`. Responses use JSON.
 | `q` | string | Full-text search (description, dropzone, event, lo) |
 | `date_from` / `date_to` | date | Date range filter |
 | `dropzone` | string | Exact dropzone filter |
+| `aircraft` | string | Exact aircraft filter |
 | `jump_type` | string | Discipline filter |
 | `altitude_min` / `altitude_max` | int | Altitude range |
 | `cutaway` / `night` | bool | Boolean flag filters |

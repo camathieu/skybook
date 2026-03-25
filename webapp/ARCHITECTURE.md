@@ -81,7 +81,7 @@ graph TD
     Router --> JumpList["JumpList.vue (page)"]
 
     JumpList --> SearchBar["SearchBar.vue — debounced (300ms), / shortcut"]
-    JumpList --> FilterBar["FilterBar.vue — type, dropzone, date range, toggles"]
+    JumpList --> FilterBar["FilterBar.vue — type, dropzone, aircraft, date range, toggles"]
     JumpList --> JumpTable["JumpTable.vue — desktop, sortable headers"]
     JumpList --> JumpCard["JumpCard.vue — mobile cards (<640px)"]
     JumpList --> JumpSkeleton["JumpSkeleton.vue — loading shimmer"]
@@ -188,7 +188,7 @@ The API returns `"YYYY-MM-DD"` strings. The webapp displays them as-is — no ti
 
 ### Filter Persistence
 
-FilterBar collapses on mobile. Filter state is preserved in the Pinia store (not localStorage) — refreshing the page resets all filters. This is by design to avoid stale filter confusion.
+FilterBar collapses on mobile. Filter state is persisted in the URL query string via `toQuery()` / `initFromQuery()` in `stores/jumps.js`. All active filters survive a page refresh and can be bookmarked or shared. Filters are stored in the Pinia store in-memory — navigating away and back (within the SPA) also preserves filter state via URL sync.
 
 ### Delete Confirmation
 
