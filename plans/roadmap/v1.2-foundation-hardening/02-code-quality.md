@@ -16,3 +16,5 @@ Eliminate duplication, improve test coverage, and clean up API inconsistencies.
 - [007 — Metadata Date Validation Tests](02-code-quality/007-metadata-date-validation-tests.md)
 - [008 — Remove Dangling Aircraft Filter](02-code-quality/008-remove-dangling-aircraft-filter.md)
 - [009 — Document PUT Semantics](02-code-quality/009-document-put-semantics.md)
+- [010 — Altitude Management UX](02-code-quality/010-altitude-management-ux.md)
+- [011 — Numeric Bounds Validation](02-code-quality/011-numeric-bounds-validation.md)
