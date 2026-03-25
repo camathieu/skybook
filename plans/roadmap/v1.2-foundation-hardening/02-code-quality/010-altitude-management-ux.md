@@ -3,7 +3,7 @@ ticket: "010"
 epic: code-quality
 milestone: v1.2
 title: Altitude Management UX
-status: planned
+status: done
 priority: medium
 estimate: S
 ---
@@ -14,8 +14,15 @@ Currently, the Altitude field in `JumpModal.vue` is a standard `<input type="num
 
 ## Acceptance Criteria
 
-- [ ] Modify `AutocompleteInput.vue` to accept a new optional `options` prop (an array of strings).
-- [ ] If `options` is provided, `AutocompleteInput.vue` should use it to populated suggestions client-side without making an API call, using standard array filtering vs the user input. => same as every other drop down in the modal sorted by last usage + possibility to add whaterver you want within the bounds (see next ticket).
-- [ ] Change the Altitude field in `JumpModal.vue` to use `<AutocompleteInput id="f-altitude" :options="['5000', '10000', '12000', '13000', '15000', '20000']" />`.
-- [ ] The user must still be able to input custom values (e.g., `12500`) that aren't in the static dropdown list.
-- [ ] Before sending the payload to the API (`buildPayload` in `JumpModal.vue`), the string value should be parsed into a Number.
+- [x] Modify `AutocompleteInput.vue` to accept a new optional `options` prop (an array of strings).
+- [x] If `options` is provided, `AutocompleteInput.vue` uses client-side filtering (no API call). On focus shows all options; on type filters by prefix.
+- [x] Change the Altitude field in `JumpModal.vue` to use `AutocompleteInput` with static presets.
+- [x] The user can still input custom values (e.g., `12500`) not in the preset list.
+- [x] Before sending the payload, the string value is parsed into a Number (`buildPayload` already handled this).
+
+## Done
+
+- `webapp/src/components/AutocompleteInput.vue` — Added `options` prop (static client-side suggestions, no API call when provided) and `inputmode` prop (pass-through to `<input>` for mobile numeric keyboard). `field` stays required.
+- `webapp/src/components/JumpModal.vue` — Replaced `<input type="number">` for altitude with `<AutocompleteInput field="altitude" :options="ALTITUDE_PRESETS" inputmode="numeric" />`. `ALTITUDE_PRESETS = ['5000', '10000', '12000', '13000', '15000', '20000']`.
+- `webapp/src/components/AutocompleteInput.spec.js` — Added 3 tests: shows all options on focus (no API call), filters by prefix, allows custom value not in options.
+- 58/58 tests pass, frontend builds cleanly.

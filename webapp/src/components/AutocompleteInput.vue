@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onBeforeUnmount } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { api } from '../api.js'
 
 const props = defineProps({
@@ -8,6 +8,10 @@ const props = defineProps({
   placeholder: { type: String, default: '' },
   required: { type: Boolean, default: false },
   id: { type: String, default: '' },
+  // Static options array — when provided, use client-side filtering instead of API calls
+  options: { type: Array, default: null },
+  // Pass-through to <input inputmode> for mobile keyboard control (e.g. 'numeric')
+  inputmode: { type: String, default: '' },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -23,7 +27,21 @@ let debounceTimer = null
 const localValue = ref(props.modelValue)
 watch(() => props.modelValue, (v) => { localValue.value = v })
 
+// Whether we're in static-options mode (no API call)
+const isStaticMode = computed(() => Array.isArray(props.options))
+
+function filterStaticOptions(prefix) {
+  if (!prefix) return props.options
+  const lower = prefix.toLowerCase()
+  return props.options.filter(o => o.toLowerCase().startsWith(lower))
+}
+
 async function fetchSuggestions(prefix) {
+  if (isStaticMode.value) {
+    suggestions.value = filterStaticOptions(prefix)
+    open.value = suggestions.value.length > 0
+    return
+  }
   try {
     const url = prefix
       ? `/jumps/autocomplete/${props.field}?q=${encodeURIComponent(prefix)}`
@@ -51,9 +69,15 @@ async function onInput(e) {
   activeIndex.value = -1
 
   clearTimeout(debounceTimer)
-  // Intentional: clearing the field re-fetches all recent values (empty prefix → show all).
-  // This makes the dropdown act as a "recent values" list when the field is blank.
-  debounceTimer = setTimeout(() => fetchSuggestions(val.trim()), 200)
+  if (isStaticMode.value) {
+    // No debounce needed for client-side filtering
+    suggestions.value = filterStaticOptions(val.trim())
+    open.value = suggestions.value.length > 0
+  } else {
+    // Intentional: clearing the field re-fetches all recent values (empty prefix → show all).
+    // This makes the dropdown act as a "recent values" list when the field is blank.
+    debounceTimer = setTimeout(() => fetchSuggestions(val.trim()), 200)
+  }
 }
 
 function select(val) {
@@ -102,6 +126,7 @@ onBeforeUnmount(() => clearTimeout(debounceTimer))
       :value="localValue"
       :placeholder="placeholder"
       :required="required"
+      :inputmode="inputmode || undefined"
       autocomplete="off"
       @focus="onFocus"
       @input="onInput"

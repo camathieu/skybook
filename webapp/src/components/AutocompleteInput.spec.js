@@ -101,4 +101,39 @@ describe('AutocompleteInput', () => {
     await wrapper.find('input').trigger('keydown', { key: 'Escape' })
     expect(wrapper.vm.open).toBe(false)
   })
+
+  // ---- Static options mode ----
+
+  it('shows all static options on focus without making an API call', async () => {
+    const wrapper = mount(AutocompleteInput, {
+      props: { field: 'altitude', modelValue: '', options: ['5000', '10000', '15000'] },
+    })
+    await wrapper.find('input').trigger('focus')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+    expect(api.get).not.toHaveBeenCalled()
+    expect(wrapper.vm.suggestions).toEqual(['5000', '10000', '15000'])
+    expect(wrapper.vm.open).toBe(true)
+  })
+
+  it('filters static options by typed prefix (client-side, no API call)', async () => {
+    const wrapper = mount(AutocompleteInput, {
+      props: { field: 'altitude', modelValue: '', options: ['5000', '10000', '12000', '13000', '15000', '20000'] },
+    })
+    await wrapper.find('input').setValue('1')
+    await wrapper.vm.$nextTick()
+    expect(api.get).not.toHaveBeenCalled()
+    // Only options starting with "1" should be shown
+    expect(wrapper.vm.suggestions).toEqual(['10000', '12000', '13000', '15000'])
+  })
+
+  it('allows emitting a custom value not in static options', async () => {
+    const wrapper = mount(AutocompleteInput, {
+      props: { field: 'altitude', modelValue: '', options: ['5000', '10000', '15000'] },
+    })
+    const input = wrapper.find('input')
+    await input.setValue('12500')
+    expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+    expect(wrapper.emitted('update:modelValue').at(-1)).toEqual(['12500'])
+  })
 })

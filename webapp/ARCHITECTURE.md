@@ -90,7 +90,7 @@ graph TD
     JumpList --> ConfirmModal["ConfirmModal.vue — delete confirmation"]
 
     JumpModal --> BaseModal["BaseModal.vue — shared modal wrapper"]
-    JumpModal --> Autocomplete["AutocompleteInput.vue — debounced API"]
+    JumpModal --> Autocomplete["AutocompleteInput.vue — debounced API or static options"]
     JumpModal --> CustomSelect["CustomSelect.vue — styled dropdown"]
     ConfirmModal --> BaseModal
 ```
@@ -144,10 +144,18 @@ The `N` shortcut is registered globally on `window` in `onMounted` and cleaned u
 
 ### AutocompleteInput
 
-Debounced (200ms) autocomplete backed by `/api/v1/jumps/autocomplete/:field`:
-- Shows suggestions on focus (all values) and on input (filtered)
-- Keyboard navigable (↑/↓/Enter/Escape)
-- Populates dropzone, aircraft, event, LO fields
+Dual-mode combobox — API-backed or static options:
+
+| Mode | When | Behavior |
+|------|------|----------|
+| **API** | `options` prop absent | Debounced (200ms) fetch to `/api/v1/jumps/autocomplete/:field`; shows all on empty focus, filtered matches on type |
+| **Static** | `options` prop provided | Client-side prefix filter on the given array; no API call. Used by the altitude field. |
+
+Both modes share identical keyboard behavior (↑/↓/Enter/Escape) and touch targets (min 44px).
+
+The `inputmode` prop is passed through to `<input>` for mobile keyboard control (e.g. `inputmode="numeric"` shows the numeric keypad while keeping `type="text"` for autocomplete compatibility).
+
+Populates: dropzone, aircraft, altitude (static), event, LO fields.
 
 ---
 
@@ -206,7 +214,7 @@ Uses **Vitest** with `@vue/test-utils` and **jsdom**:
 |------|--------------|
 | `stores/jumps.spec.js` | State init, CRUD actions, sorting, filtering, pagination, URL sync |
 | `stores/toast.spec.js` | Toast adding, auto-dismiss, type handling |
-| `components/AutocompleteInput.spec.js` | Rendering, v-model, debounced API calls, keyboard nav |
+| `components/AutocompleteInput.spec.js` | Rendering, v-model, debounced API calls, keyboard nav, static options mode |
 | `components/BaseModal.spec.js` | Open/close, click-outside, Escape key, Teleport |
 | `components/CustomSelect.spec.js` | Rendering, selection, keyboard nav, search |
 | `components/Pagination.spec.js` | Page range display, prev/next disabled states, per-page switching |

@@ -23,6 +23,8 @@ const JUMP_TYPES = [
 
 const LANDING_OPTIONS = ['Stand-up', 'Sliding', 'PLF', 'Off-DZ', 'Water']
 
+const ALTITUDE_PRESETS = ['5000', '10000', '12000', '13000', '15000', '20000']
+
 const isEdit = computed(() => !!props.jump)
 const modalTitle = computed(() =>
   isEdit.value ? `Edit Jump #${props.jump.number}` : 'New Jump',
@@ -46,7 +48,7 @@ const form = reactive({
   dropzone: props.jump?.dropzone ?? '',
   jumpType: props.jump?.jumpType ?? 'FF',
   aircraft: props.jump?.aircraft ?? '',
-  altitude: props.jump?.altitude ?? '',
+  altitude: props.jump?.altitude != null ? String(props.jump.altitude) : '',
   freefallTime: props.jump?.freefallTime ?? '',
   canopySize: props.jump?.canopySize ?? '',
   lo: props.jump?.lo ?? '',
@@ -258,7 +260,14 @@ function requestClose() {
               </div>
               <div class="field">
                 <label for="f-altitude" class="label">Exit Altitude (ft)</label>
-                <input id="f-altitude" type="number" class="form-input" v-model="form.altitude" min="0" placeholder="e.g. 14000" />
+                <AutocompleteInput
+                  id="f-altitude"
+                  field="altitude"
+                  :options="ALTITUDE_PRESETS"
+                  inputmode="numeric"
+                  v-model="form.altitude"
+                  placeholder="e.g. 14000"
+                />
               </div>
               <div class="field">
                 <label for="f-freefall" class="label">Freefall (s)</label>
