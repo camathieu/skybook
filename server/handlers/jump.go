@@ -132,6 +132,19 @@ func ListJumps(db *metadata.Backend) http.HandlerFunc {
 				return
 			}
 		}
+		if v := q.Get("favorite"); v != "" {
+			switch v {
+			case "true", "1":
+				b := true
+				filters.Favorite = &b
+			case "false", "0":
+				b := false
+				filters.Favorite = &b
+			default:
+				common.WriteError(w, "favorite must be true or false", http.StatusBadRequest)
+				return
+			}
+		}
 
 		jumps, total, err := db.GetJumps(anonymousUserID, offset, perPage, sortBy, order, filters)
 		if err != nil {

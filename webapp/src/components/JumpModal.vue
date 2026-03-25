@@ -25,6 +25,8 @@ const LANDING_OPTIONS = ['Stand-up', 'Sliding', 'PLF', 'Off-DZ', 'Water']
 
 const ALTITUDE_PRESETS = ['5000', '10000', '12000', '13000', '15000', '20000']
 
+const PATTERN_PRESETS = ['PTU', 'Straight Final', '90°', '270°', '450°', '630°']
+
 const isEdit = computed(() => !!props.jump)
 const modalTitle = computed(() =>
   isEdit.value ? `Edit Jump #${props.jump.number}` : 'New Jump',
@@ -54,10 +56,12 @@ const form = reactive({
   lo: props.jump?.lo ?? '',
   event: props.jump?.event ?? '',
   landing: props.jump?.landing ?? '',
+  pattern: props.jump?.pattern ?? '',
   nightJump: props.jump?.nightJump ?? false,
   oxygenJump: props.jump?.oxygenJump ?? false,
   cutaway: props.jump?.cutaway ?? false,
   packjob: props.jump?.packjob ?? false,
+  favorite: props.jump?.favorite ?? false,
   description: props.jump?.description ?? '',
 })
 
@@ -104,10 +108,12 @@ function buildPayload() {
     lo: form.lo.trim() || undefined,
     event: form.event.trim() || undefined,
     landing: form.landing || undefined,
+    pattern: form.pattern || undefined,
     nightJump: form.nightJump,
     oxygenJump: form.oxygenJump,
     cutaway: form.cutaway,
     packjob: form.packjob,
+    favorite: form.favorite,
     description: form.description.trim() || undefined,
   }
 
@@ -154,10 +160,12 @@ async function saveAndAddAnother() {
     form.lo = ''
     form.event = ''
     form.landing = ''
+    form.pattern = ''
     form.nightJump = false
     form.oxygenJump = false
     form.cutaway = false
     form.packjob = false
+    form.favorite = false
     form.description = ''
     isDirty.value = false
     await nextTick()
@@ -199,7 +207,17 @@ function requestClose() {
         <!-- Header -->
         <div class="modal-header">
           <h2 id="modal-title" class="modal-title">{{ modalTitle }}</h2>
-          <button class="close-btn" aria-label="Close" @click="requestClose">✕</button>
+          <div class="header-actions">
+            <button
+              class="star-btn"
+              :class="{ active: form.favorite }"
+              :aria-label="form.favorite ? 'Remove from favorites' : 'Add to favorites'"
+              @click="form.favorite = !form.favorite"
+            >
+              {{ form.favorite ? '★' : '☆' }}
+            </button>
+            <button class="close-btn" aria-label="Close" @click="requestClose">✕</button>
+          </div>
         </div>
 
         <!-- Form -->
@@ -239,13 +257,10 @@ function requestClose() {
                 <span v-if="errors.dropzone" class="field-error">{{ errors.dropzone }}</span>
               </div>
 
-              <!-- Jump Type -->
+              <!-- Aircraft -->
               <div class="field">
-                <label for="f-jump-type" class="label required">Jump Type</label>
-                <select id="f-jump-type" class="form-input form-select" v-model="form.jumpType" required>
-                  <option v-for="t in JUMP_TYPES" :key="t" :value="t">{{ t }}</option>
-                </select>
-                <span v-if="errors.jumpType" class="field-error">{{ errors.jumpType }}</span>
+                <label for="f-aircraft" class="label">Aircraft</label>
+                <AutocompleteInput id="f-aircraft" field="aircraft" v-model="form.aircraft" placeholder="e.g. Cessna 182" />
               </div>
             </div>
           </fieldset>
@@ -255,8 +270,15 @@ function requestClose() {
             <legend class="section-title">Details</legend>
             <div class="grid">
               <div class="field">
-                <label for="f-aircraft" class="label">Aircraft</label>
-                <AutocompleteInput id="f-aircraft" field="aircraft" v-model="form.aircraft" placeholder="e.g. Cessna 182" />
+                <label for="f-jump-type" class="label required">Jump Type</label>
+                <AutocompleteInput
+                  id="f-jump-type"
+                  field="jump_type"
+                  :options="JUMP_TYPES"
+                  v-model="form.jumpType"
+                  placeholder="e.g. FF"
+                />
+                <span v-if="errors.jumpType" class="field-error">{{ errors.jumpType }}</span>
               </div>
               <div class="field">
                 <label for="f-altitude" class="label">Exit Altitude (ft)</label>
@@ -269,6 +291,8 @@ function requestClose() {
                   placeholder="e.g. 14000"
                 />
               </div>
+            </div>
+            <div class="grid">
               <div class="field">
                 <label for="f-freefall" class="label">Freefall (s)</label>
                 <input id="f-freefall" type="number" class="form-input" v-model="form.freefallTime" min="0" placeholder="e.g. 60" />
@@ -277,12 +301,27 @@ function requestClose() {
                 <label for="f-canopy" class="label">Canopy Size (sqft)</label>
                 <input id="f-canopy" type="number" class="form-input" v-model="form.canopySize" min="0" placeholder="e.g. 190" />
               </div>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="f-pattern" class="label">Pattern</label>
+                <AutocompleteInput
+                  id="f-pattern"
+                  field="pattern"
+                  :options="PATTERN_PRESETS"
+                  v-model="form.pattern"
+                  placeholder="e.g. 270°"
+                />
+              </div>
               <div class="field">
                 <label for="f-landing" class="label">Landing</label>
-                <select id="f-landing" class="form-input form-select" v-model="form.landing">
-                  <option value="">— select —</option>
-                  <option v-for="opt in LANDING_OPTIONS" :key="opt" :value="opt">{{ opt }}</option>
-                </select>
+                <AutocompleteInput
+                  id="f-landing"
+                  field="landing"
+                  :options="LANDING_OPTIONS"
+                  v-model="form.landing"
+                  placeholder="e.g. Stand-up"
+                />
               </div>
             </div>
           </fieldset>
@@ -419,6 +458,36 @@ function requestClose() {
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s;
+}
+
+.star-btn:hover {
+  background: var(--color-surface-700);
+  color: #f5c542;
+}
+
+.star-btn.active {
+  color: #f5c542;
 }
 
 .close-btn {

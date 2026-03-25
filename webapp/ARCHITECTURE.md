@@ -149,13 +149,13 @@ Dual-mode combobox — API-backed or static options:
 | Mode | When | Behavior |
 |------|------|----------|
 | **API** | `options` prop absent | Debounced (200ms) fetch to `/api/v1/jumps/autocomplete/:field`; shows all on empty focus, filtered matches on type |
-| **Static** | `options` prop provided | Client-side prefix filter on the given array; no API call. Used by the altitude field. |
+| **Static** | `options` prop provided | Client-side prefix filter on the given array; no API call. Used by altitude, landing, and pattern fields. |
 
 Both modes share identical keyboard behavior (↑/↓/Enter/Escape) and touch targets (min 44px).
 
 The `inputmode` prop is passed through to `<input>` for mobile keyboard control (e.g. `inputmode="numeric"` shows the numeric keypad while keeping `type="text"` for autocomplete compatibility).
 
-Populates: dropzone, aircraft, altitude (static), event, LO fields.
+Populates: dropzone, aircraft, altitude (static), landing (static), pattern (static), event, LO fields.
 
 ---
 

@@ -32,8 +32,8 @@ func IsAllowedSortField(field string) bool {
 var updatableColumns = []string{
 	"date", "dropzone", "aircraft", "jump_type",
 	"altitude", "freefall_time", "canopy_size",
-	"lo", "event", "description", "links", "landing",
-	"night_jump", "oxygen_jump", "cut_away", "packjob",
+	"lo", "event", "description", "links", "landing", "pattern",
+	"night_jump", "oxygen_jump", "cut_away", "packjob", "favorite",
 	"updated_at",
 }
 
@@ -49,6 +49,7 @@ type JumpFilters struct {
 	AltitudeMax *uint
 	Cutaway     *bool
 	Night       *bool
+	Favorite    *bool
 	LO          string
 }
 
@@ -353,6 +354,9 @@ func (b *Backend) GetJumps(userID uint, offset, limit int, sortBy, order string,
 	}
 	if filters.Night != nil {
 		q = q.Where("night_jump = ?", *filters.Night)
+	}
+	if filters.Favorite != nil {
+		q = q.Where("favorite = ?", *filters.Favorite)
 	}
 	if filters.LO != "" {
 		q = q.Where("lo = ?", filters.LO)

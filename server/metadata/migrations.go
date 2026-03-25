@@ -33,15 +33,5 @@ func migrations() []*gormigrate.Migration {
 				return tx.Migrator().DropTable("jumps")
 			},
 		},
-		{
-			ID: "202603260001_add_packjob",
-			Migrate: func(tx *gorm.DB) error {
-				// AutoMigrate is idempotent — adds the column if missing, no-ops if present.
-				return tx.AutoMigrate(&common.Jump{})
-			},
-			Rollback: func(tx *gorm.DB) error {
-				return tx.Migrator().DropColumn(&common.Jump{}, "packjob")
-			},
-		},
 	}
 }

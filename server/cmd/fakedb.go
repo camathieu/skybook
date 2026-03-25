@@ -185,6 +185,9 @@ func runFakedb(cmd *cobra.Command, args []string) {
 				Altitude:     uintPtr(altitude),
 				FreefallTime: uintPtr(freefall),
 				CanopySize:   uintPtr(canopySize),
+				Landing:      landingResult(r),
+				Pattern:      canopyPattern(totalGenerated),
+				Favorite:     r.Float32() < 0.05,
 				Description:  description,
 				CutAway:      cutaway,
 			}
@@ -235,4 +238,29 @@ func dropAltitude(r *rand.Rand) uint {
 	}
 	alts := [3]uint{10000, 12000, 15000}
 	return alts[r.Intn(3)]
+}
+
+// landingResult returns a realistic landing type:
+// 90 % Stand-up, 9 % Sliding, 1 % Off-DZ.
+func landingResult(r *rand.Rand) string {
+	p := r.Float32()
+	if p < 0.90 {
+		return "Stand-up"
+	}
+	if p < 0.99 {
+		return "Sliding"
+	}
+	return "Off-DZ"
+}
+
+// canopyPattern returns a canopy approach pattern based on experience level:
+// ≤200 jumps → PTU (student/novice), 201–500 → 90° (intermediate), 501+ → 270° (experienced).
+func canopyPattern(jumpCount int) string {
+	if jumpCount <= 200 {
+		return "PTU"
+	}
+	if jumpCount <= 500 {
+		return "90°"
+	}
+	return "270°"
 }

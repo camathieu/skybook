@@ -87,6 +87,7 @@ function sortIcon(col) {
           <td class="col-freefall">{{ formatFreefall(jump.freefallTime) }}</td>
           <td class="col-landing">{{ jump.landing || '—' }}</td>
           <td class="col-flags">
+            <span v-if="jump.favorite" class="flag flag-fav" title="Favorite">★</span>
             <span v-if="jump.nightJump" class="flag flag-night" title="Night jump">🌙</span>
             <span v-if="jump.oxygenJump" class="flag flag-o2" title="Oxygen">O₂</span>
             <span v-if="jump.cutaway" class="flag flag-cutaway" title="Cutaway">✂</span>
@@ -197,6 +198,10 @@ function sortIcon(col) {
 
 .flag-cutaway {
   color: var(--color-danger);
+}
+
+.flag-fav {
+  color: #f5c542;
 }
 
 .flag-night {

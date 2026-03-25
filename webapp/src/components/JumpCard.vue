@@ -42,7 +42,8 @@ function formatAltitude(alt) {
       </div>
     </div>
 
-    <div v-if="jump.nightJump || jump.oxygenJump || jump.cutaway" class="card-flags">
+    <div v-if="jump.favorite || jump.nightJump || jump.oxygenJump || jump.cutaway" class="card-flags">
+      <span v-if="jump.favorite" class="flag-badge flag-fav">★ Favorite</span>
       <span v-if="jump.nightJump" class="flag-badge flag-night">🌙 Night</span>
       <span v-if="jump.oxygenJump" class="flag-badge flag-o2">O₂</span>
       <span v-if="jump.cutaway" class="flag-badge flag-cutaway">✂ Cutaway</span>
@@ -139,5 +140,10 @@ function formatAltitude(alt) {
 .flag-cutaway {
   color: var(--color-danger);
   background: rgba(239, 68, 68, 0.15);
+}
+
+.flag-fav {
+  color: #f5c542;
+  background: rgba(245, 197, 66, 0.1);
 }
 </style>

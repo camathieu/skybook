@@ -113,7 +113,16 @@ function retry() {
 
     <!-- Toolbar: search + filters -->
     <div class="toolbar">
-      <SearchBar />
+      <div class="toolbar-row">
+        <SearchBar />
+        <button
+          class="btn-fav-filter"
+          :class="{ active: store.filters.favorite === true }"
+          :aria-label="store.filters.favorite === true ? 'Show all jumps' : 'Show favorites only'"
+          :title="store.filters.favorite === true ? 'Show all jumps' : 'Show favorites only'"
+          @click="store.filters.favorite = store.filters.favorite === true ? null : true"
+        >★</button>
+      </div>
       <FilterBar />
     </div>
 
@@ -224,6 +233,41 @@ function retry() {
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+}
+
+.toolbar-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.toolbar-row > :first-child {
+  flex: 1;
+}
+
+.btn-fav-filter {
+  background: var(--color-surface-700);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 1.125rem;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-fav-filter:hover {
+  background: var(--color-surface-600);
+  color: #f5c542;
+}
+
+.btn-fav-filter.active {
+  color: #f5c542;
+  border-color: #f5c542;
+  background: rgba(245, 197, 66, 0.1);
 }
 
 /* State cards (empty, error, no results) */

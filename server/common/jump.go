@@ -70,10 +70,12 @@ type Jump struct {
 	Description  string                      `gorm:"type:text" json:"description,omitempty"`
 	Links        datatypes.JSONSlice[string] `gorm:"type:text" json:"links,omitempty"`
 	Landing      string                      `gorm:"size:32" json:"landing,omitempty"`
+	Pattern      string                      `gorm:"size:32" json:"pattern,omitempty"`
 	NightJump    bool                        `gorm:"default:false" json:"nightJump"`
 	OxygenJump   bool                        `gorm:"default:false" json:"oxygenJump"`
 	CutAway      bool                        `gorm:"default:false" json:"cutaway"`
 	Packjob      bool                        `gorm:"default:false" json:"packjob"`
+	Favorite     bool                        `gorm:"default:false;index" json:"favorite"`
 	CreatedAt    time.Time                   `json:"createdAt"`
 	UpdatedAt    time.Time                   `json:"updatedAt"`
 }

@@ -24,6 +24,7 @@ export const useJumpStore = defineStore('jumps', () => {
     dateTo: '',
     cutaway: null,
     night: null,
+    favorite: null,
   })
 
   // --- Actions ---
@@ -52,6 +53,7 @@ export const useJumpStore = defineStore('jumps', () => {
       if (filters.dateTo) params.set('date_to', filters.dateTo)
       if (filters.cutaway !== null) params.set('cutaway', String(filters.cutaway))
       if (filters.night !== null) params.set('night', String(filters.night))
+      if (filters.favorite !== null) params.set('favorite', String(filters.favorite))
 
       const data = await api.get(`/jumps?${params.toString()}`)
 
@@ -115,6 +117,7 @@ export const useJumpStore = defineStore('jumps', () => {
     filters.dateTo = ''
     filters.cutaway = null
     filters.night = null
+    filters.favorite = null
     page.value = 1
   }
 
@@ -127,7 +130,8 @@ export const useJumpStore = defineStore('jumps', () => {
       filters.dateFrom ||
       filters.dateTo ||
       filters.cutaway !== null ||
-      filters.night !== null
+      filters.night !== null ||
+      filters.favorite !== null
     )
   }
 
@@ -148,6 +152,7 @@ export const useJumpStore = defineStore('jumps', () => {
     if (query.date_to) filters.dateTo = query.date_to
     if (query.cutaway) filters.cutaway = query.cutaway === 'true'
     if (query.night) filters.night = query.night === 'true'
+    if (query.favorite) filters.favorite = query.favorite === 'true'
   }
 
   /**
@@ -167,6 +172,7 @@ export const useJumpStore = defineStore('jumps', () => {
     if (filters.dateTo) q.date_to = filters.dateTo
     if (filters.cutaway !== null) q.cutaway = String(filters.cutaway)
     if (filters.night !== null) q.night = String(filters.night)
+    if (filters.favorite !== null) q.favorite = String(filters.favorite)
     return q
   }
 

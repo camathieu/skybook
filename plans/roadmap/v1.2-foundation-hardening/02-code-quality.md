@@ -18,3 +18,6 @@ Eliminate duplication, improve test coverage, and clean up API inconsistencies.
 - [009 — Document PUT Semantics](02-code-quality/009-document-put-semantics.md)
 - [010 — Altitude Management UX](02-code-quality/010-altitude-management-ux.md)
 - [011 — Numeric Bounds Validation](02-code-quality/011-numeric-bounds-validation.md)
+- [012 — Landing Combobox, Pattern Field & FakeDB Updates](02-code-quality/012-landing-combobox-pattern-field.md)
+- [013 — Server-Driven Frontend Settings](02-code-quality/013-frontend-settings-file.md)
+- [014 — Altitude Unit Setting (Feet / Meters)](02-code-quality/014-altitude-unit-setting.md)
