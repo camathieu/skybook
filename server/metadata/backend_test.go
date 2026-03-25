@@ -1,9 +1,11 @@
 package metadata
 
 import (
+	"errors"
 	"log/slog"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/root-gg/skybook/common"
 )
@@ -438,5 +440,182 @@ func TestUpdateJump_BooleanOverwrite(t *testing.T) {
 	}
 	if fetched.Dropzone != "DZ Updated" {
 		t.Errorf("dropzone not updated: got %q", fetched.Dropzone)
+	}
+}
+
+// dateOf creates a DateOnly for a given year, month, day (UTC midnight).
+func dateOf(year, month, day int) common.DateOnly {
+	return common.NewDateOnly(year, time.Month(month), day)
+}
+
+// TestFirstJump_NoValidation — first jump in empty logbook always passes.
+func TestFirstJump_NoValidation(t *testing.T) {
+	b := testBackend(t)
+	j := testJump(1)
+	if err := b.CreateJump(j); err != nil {
+		t.Fatalf("first jump should always succeed: %v", err)
+	}
+}
+
+// TestCreateJump_SameDay_Valid — two jumps on the same date is allowed.
+func TestCreateJump_SameDay_Valid(t *testing.T) {
+	b := testBackend(t)
+	today := dateOf(2025, 6, 15)
+
+	j1 := &common.Jump{UserID: 1, Date: today, Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.CreateJump(j1); err != nil {
+		t.Fatalf("create j1: %v", err)
+	}
+	j2 := &common.Jump{UserID: 1, Date: today, Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.CreateJump(j2); err != nil {
+		t.Fatalf("two jumps on the same day should succeed: %v", err)
+	}
+}
+
+// TestCreateJump_DateOrder_AppendValid — appending with date ≥ last passes.
+func TestCreateJump_DateOrder_AppendValid(t *testing.T) {
+	b := testBackend(t)
+
+	j1 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.CreateJump(j1); err != nil {
+		t.Fatalf("create j1: %v", err)
+	}
+	j2 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 15), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.CreateJump(j2); err != nil {
+		t.Fatalf("append with later date should succeed: %v", err)
+	}
+}
+
+// TestCreateJump_DateOrder_AppendInvalid — appending with date < last returns DateOrderError.
+func TestCreateJump_DateOrder_AppendInvalid(t *testing.T) {
+	b := testBackend(t)
+
+	j1 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 15), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.CreateJump(j1); err != nil {
+		t.Fatalf("create j1: %v", err)
+	}
+	j2 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	err := b.CreateJump(j2)
+	if err == nil {
+		t.Fatal("expected DateOrderError, got nil")
+	}
+	var doe *common.DateOrderError
+	if !errors.As(err, &doe) {
+		t.Errorf("expected *DateOrderError, got %T: %v", err, err)
+	}
+}
+
+// TestInsertJumpAt_DateOrder_Valid — inserting between two jumps with a fitting date passes.
+func TestInsertJumpAt_DateOrder_Valid(t *testing.T) {
+	b := testBackend(t)
+
+	j1 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j2 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 15), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.CreateJump(j1); err != nil {
+		t.Fatalf("create j1: %v", err)
+	}
+	if err := b.CreateJump(j2); err != nil {
+		t.Fatalf("create j2: %v", err)
+	}
+
+	// Insert at position 2 (between j1 and j2) with a date squarely in between
+	ins := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 8), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.InsertJumpAt(ins, 2); err != nil {
+		t.Fatalf("insert with date between neighbors should succeed: %v", err)
+	}
+}
+
+// TestInsertJumpAt_DateOrder_InvalidBefore — inserting with date < prev returns DateOrderError.
+func TestInsertJumpAt_DateOrder_InvalidBefore(t *testing.T) {
+	b := testBackend(t)
+
+	j1 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 10), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j2 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 20), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.CreateJump(j1); err != nil {
+		t.Fatalf("create j1: %v", err)
+	}
+	if err := b.CreateJump(j2); err != nil {
+		t.Fatalf("create j2: %v", err)
+	}
+
+	// Insert at position 2 but with date before j1 (June1 < June10)
+	ins := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	err := b.InsertJumpAt(ins, 2)
+	if err == nil {
+		t.Fatal("expected DateOrderError (date before prev), got nil")
+	}
+	var doe *common.DateOrderError
+	if !errors.As(err, &doe) {
+		t.Errorf("expected *DateOrderError, got %T: %v", err, err)
+	}
+}
+
+// TestInsertJumpAt_DateOrder_InvalidAfter — inserting with date > next returns DateOrderError.
+func TestInsertJumpAt_DateOrder_InvalidAfter(t *testing.T) {
+	b := testBackend(t)
+
+	j1 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 10), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j2 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 20), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	if err := b.CreateJump(j1); err != nil {
+		t.Fatalf("create j1: %v", err)
+	}
+	if err := b.CreateJump(j2); err != nil {
+		t.Fatalf("create j2: %v", err)
+	}
+
+	// Insert at position 2 but with date after j2 (June25 > June20)
+	ins := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 25), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	err := b.InsertJumpAt(ins, 2)
+	if err == nil {
+		t.Fatal("expected DateOrderError (date after next), got nil")
+	}
+	var doe *common.DateOrderError
+	if !errors.As(err, &doe) {
+		t.Errorf("expected *DateOrderError, got %T: %v", err, err)
+	}
+}
+
+// TestUpdateJump_DateOrder_Valid — changing date within bounds succeeds.
+func TestUpdateJump_DateOrder_Valid(t *testing.T) {
+	b := testBackend(t)
+
+	j1 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j2 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 15), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j3 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 30), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	for _, j := range []*common.Jump{j1, j2, j3} {
+		if err := b.CreateJump(j); err != nil {
+			t.Fatalf("create: %v", err)
+		}
+	}
+
+	// Move j2's date; still between j1 and j3
+	j2.Date = dateOf(2025, 6, 20)
+	if err := b.UpdateJump(j2); err != nil {
+		t.Fatalf("update within bounds should succeed: %v", err)
+	}
+}
+
+// TestUpdateJump_DateOrder_Invalid — changing date outside bounds returns DateOrderError.
+func TestUpdateJump_DateOrder_Invalid(t *testing.T) {
+	b := testBackend(t)
+
+	j1 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 1), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j2 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 15), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	j3 := &common.Jump{UserID: 1, Date: dateOf(2025, 6, 30), Dropzone: "DZ", JumpType: common.JumpTypeFF}
+	for _, j := range []*common.Jump{j1, j2, j3} {
+		if err := b.CreateJump(j); err != nil {
+			t.Fatalf("create: %v", err)
+		}
+	}
+
+	// Try to push j2 after j3 — should fail
+	j2.Date = dateOf(2025, 7, 10)
+	err := b.UpdateJump(j2)
+	if err == nil {
+		t.Fatal("expected DateOrderError (date after next), got nil")
+	}
+	var doe *common.DateOrderError
+	if !errors.As(err, &doe) {
+		t.Errorf("expected *DateOrderError, got %T: %v", err, err)
 	}
 }
